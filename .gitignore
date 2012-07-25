@@ -1,0 +1,14 @@
+*.mat
+*.asv
+*.m~
+*.prf
+*.png
+*.log
+*.aux
+*.dat
+*.cdf
+*.pdf
+*.7z
+*.zip
+images/
+data/
