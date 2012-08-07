@@ -20,15 +20,21 @@ if exist('temp','var') ~= 1 && exist('sal','var') ~=1
 end
 
 modes.lat = [8 5 2 0 -2 -5 -8]; % N
-modes.lon = [95 110 125 140 137 147 155 156 165 170 180]; % W
+%modes.lon = [95 110 125 140 137 147 155 156 165 170 180]; % W
+% edited lon values to make neater subplots (some lons dont have enough data)
+modes.lon = fliplr([95 110 125 140 155 170 180]);
+
 modes.depth = [1 25 50 75 100 125 150 200 250 300 500]'; % standard depths
 n_modes = 3;
 fontSize = [12 12 14];
 
+nlon = length(modes.lon);
+nlat = length(modes.lat);
+
 %% Iterate!
 
-for mm=1:length(modes.lon)
-    for nn=1:length(modes.lat)
+for mm=1:nlon
+    for nn=1:nlat
         %% Calculate theoretical modes
 
         % Locate (modes.lon,lat)     
@@ -78,8 +84,7 @@ for mm=1:length(modes.lon)
         windows = [6 12];
         dhtavg = conv_band_pass(dht,windows);
         
-        %% Plot 'mode' structure
-        clf
+        % Plot 'mode' structure
         clear Imode
         n_mode = 2;
         range = 1:length(dhtavg);
@@ -97,23 +102,80 @@ for mm=1:length(modes.lon)
         %Imode = fill_gap(dhtavg(range)','linear',15)\fill_gap(tavg(:,range)','linear',15);
         ind500 = find_approx(Zmode,500,1);
         modes.Imode(mm,nn,:) = modes.Imode(mm,nn,:)./max(modes.Imode(mm,nn,:));
-        plot(squeeze(modes.Imode(mm,nn,:)),modes.depth,'bo-');
-        hold on
-        plot(abs(Tmode(:,n_mode)')./max(abs(Tmode(1:ind500,n_mode))),Zmode,'r'); % 
-        title(['(',num2str(modes.lon(mm)), 'W, ', num2str(modes.lat(nn)) , 'N)']);
-        %legendflex({'Inferred mode', 'Theoretical mode'},'anchor',{'s','w'},'nrow',1,'buffer',[40 40],'fontsize',12);
-        legend('Inferred mode','Theoretical mode','Location','SouthEast');
-        plot(zeros(size(modes.depth)),modes.depth,'k-')
-        xlim([-0.2 1.2]);
-        ylim([modes.depth(1) modes.depth(end)]);
-        revz;
-        beautify(fontSize);
-        
-        printname = ['images\', num2str(modes.lon(mm)), 'W', num2str(modes.lat(nn)) , 'N', '.png'];
-        export_fig('-nocrop',printname);
+        modes.Tmode(mm,nn,:) = Tmode(:,n_mode);
+        % now plot
+%         figure(1); clf
+%         plot(squeeze(modes.Imode(mm,nn,:)),modes.depth,'bo-');
+%         hold on
+%         plot(abs(Tmode(:,n_mode)')./max(abs(Tmode(1:ind500,n_mode))),Zmode,'r'); % 
+%         title(['(',num2str(modes.lon(mm)), 'W, ', num2str(modes.lat(nn)) , 'N)']);
+%         %legendflex({'Inferred mode', 'Theoretical mode'},'anchor',{'s','w'},'nrow',1,'buffer',[40 40],'fontsize',12);
+%         legend('Inferred mode','Theoretical mode','Location','SouthEast');
+%         plot(zeros(size(modes.depth)),modes.depth,'k-')
+%         %xlim([-0.2 1.2]);
+%         ylim([modes.depth(1) modes.depth(end)]);
+%         revz;
+%         beautify(fontSize);
+%         
+%         printname = ['images\', num2str(modes.lon(mm)), 'W', num2str(modes.lat(nn)) , 'N', '.png'];
+%         export_fig('-nocrop',printname);
     end
 end
 
+%% combined plot
+figure(2); 
+set(gcf,'Position',[0 0 1600 900]);
+xlimits = [-0.2 1.2];
+fontSize = [11 13 14];
+
+for mm=1:nlon
+    for nn=1:nlat 
+        if (modes.Imode(mm,nn,:) == 0), continue; end
+        subplot_index = sub2ind([nlon nlat],mm,nn);
+        subplot(nlat,nlon,subplot_index);
+        plot(squeeze(modes.Imode(mm,nn,:)),modes.depth,'bo-');
+        hold on
+        plot(abs(Tmode(:,n_mode)')./max(abs(Tmode(1:ind500,n_mode))),Zmode,'r'); % 
+        plot(zeros(size(modes.depth)),modes.depth,'-','Color',[0.3 0.3 0.3])
+        xlim(xlimits);
+        ylim([modes.depth(1) modes.depth(end)]);
+        set(gca,'YTick',[modes.depth(1) get(gca,'YTick')]);
+        revz;
+        
+        if mod(subplot_index,nlon) == 1
+            ylabel([num2str(modes.lat(nn))  'N']); 
+        else
+            set(gca,'YTickLabel',[]);
+        end
+        if (subplot_index >= nlon*nlat - nlon+1)
+            xlabel([num2str(modes.lon(mm)) 'W']); 
+        else
+            set(gca,'XTickLabel',[]);
+        end
+        beautify(fontSize);
+        set(gca,'TickLength',[0.03 0.03]);
+        box off
+    end
+end
+
+% fix missing lon labels
+missing_lon = 140;
+figure(2)
+for ii = 1:length(missing_lon)
+    subplot(nlat,nlon,sub2ind([nlon nlat],find(modes.lon == missing_lon(ii)),nlat))
+    xlabel('140 W');
+    set(gca,'YTickLabel',[]);
+    beautify(fontSize);
+    set(gca,'YColor',[1 1 1]);
+    box off
+end
+
+[ax,h] = suplabel('Red = Theoretical Mode, Blue = Inferred Mode','t');
+set(h,'FontSize',fontSize(3),'FontName','AvantGarde');
+
+export_fig('-nocrop','-r150','combined.png');
+
 %% save to file
-modes.comment = ['Imode(modes.lon,modes.lat,modes.depth) is the mode structure inferred by regressing band passed (6 day - 12 day) dyn. ht against band passed temperature']; 
+modes.comment = ['Imode(modes.lon,modes.lat,modes.depth) is the mode structure inferred by regressing band passed (6 day - 12 day) dyn. ht against band passed temperature.' ...
+                    ' modes.Tmode is the theoretical temperature mode']; 
 save Imode.mat modes
