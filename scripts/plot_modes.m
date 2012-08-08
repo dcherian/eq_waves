@@ -7,14 +7,18 @@ set(gcf,'Position',[0 0 1600 900]);
 xlimits = [-0.2 1.2];
 fontSize = [11 13 14];
 
+nlon = length(modes.lon);
+nlat = length(modes.lat);
+
 for mm=1:nlon
     for nn=1:nlat 
+        ind500 = find_approx(modes.zTmode,500,1);
         if (modes.Imode(mm,nn,:) == 0), continue; end
         subplot_index = sub2ind([nlon nlat],mm,nn);
         subplot(nlat,nlon,subplot_index);
         plot(squeeze(modes.Imode(mm,nn,:)),modes.depth,'bo-');
         hold on
-        plot(abs(Tmode(:,n_mode)')./max(abs(Tmode(1:ind500,n_mode))),Zmode,'r'); % 
+        plot(squeeze(abs(modes.Tmode(mm,nn,:)))./max(abs(modes.Tmode(mm,nn,1:ind500))),modes.zTmode,'r'); % 
         plot(zeros(size(modes.depth)),modes.depth,'-','Color',[0.3 0.3 0.3])
         xlim(xlimits);
         ylim([modes.depth(1) modes.depth(end)]);

@@ -12,11 +12,13 @@
 %% Data & Parameters
 
 clr
-load 'data\dynht.mat'
+
+datadir = '..\data\';
+load([datadir 'dynht.mat']);
 
 if exist('temp','var') ~= 1 && exist('sal','var') ~=1
     fprintf('\n Loading WOA 05 data \n\n');
-    load 'data\woa05.mat';
+    load '..\data\woa05.mat';
 end
 
 modes.lat = [8 5 2 0 -2 -5 -8]; % N
@@ -25,7 +27,8 @@ modes.lat = [8 5 2 0 -2 -5 -8]; % N
 modes.lon = fliplr([95 110 125 140 155 170 180]);
 
 modes.depth = [1 25 50 75 100 125 150 200 250 300 500]'; % standard depths
-n_modes = 3;
+n_modes = 3; % number of modes to calculate
+n_mode = 2; % which theoretical mode am I looking for?
 fontSize = [12 12 14];
 
 nlon = length(modes.lon);
@@ -45,7 +48,7 @@ for mm=1:nlon
         fprintf('\n Actual location = (%.1f W,%.1f N) \n', 360-X(ilon), Y(ilat));
 
         % Interpolate to denser grid.
-        Zmode = avg1(Z);
+        Zmode = avg1(Z); % Z from woa05.mat
         T = temp(:,ilat,ilon);
         S = sal(:,ilat,ilon);
         dtdz = diff(T)./diff(Z);
@@ -60,11 +63,11 @@ for mm=1:nlon
         clear vars atts dims tbuoy depth dht tavg tavg1 dhtavg
 
         if modes.lat(nn) < 0
-            fnamet = ['data\temp\t',   num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
-            fnameh = ['data\dynht\dyn',num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
+            fnamet = [datadir 'temp\t',   num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
+            fnameh = [datadir 'dynht\dyn',num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
         else
-            fnamet = ['data\temp\t',   num2str(abs(modes.lat(nn))),'n',num2str(modes.lon(mm)),'w_dy.cdf'];            
-            fnameh = ['data\dynht\dyn',num2str(abs(modes.lat(nn))),'n',num2str(modes.lon(mm)),'w_dy.cdf'];
+            fnamet = [datadir 'temp\t',   num2str(abs(modes.lat(nn))),'n',num2str(modes.lon(mm)),'w_dy.cdf'];            
+            fnameh = [datadir 'dynht\dyn',num2str(abs(modes.lat(nn))),'n',num2str(modes.lon(mm)),'w_dy.cdf'];
         end
         
         % Read & interpolate temp
@@ -84,9 +87,7 @@ for mm=1:nlon
         windows = [6 12];
         dhtavg = conv_band_pass(dht,windows);
         
-        % Plot 'mode' structure
-        clear Imode
-        n_mode = 2;
+        % Plot 'mode' structure        
         range = 1:length(dhtavg);
         
         % iterate over standard depths
@@ -100,13 +101,14 @@ for mm=1:nlon
             modes.Imode(mm,nn,ii) = cut_nan(dhtavg(range).*mask)'\cut_nan(tavg(ii,range).*mask)';
         end
         %Imode = fill_gap(dhtavg(range)','linear',15)\fill_gap(tavg(:,range)','linear',15);
-        ind500 = find_approx(Zmode,500,1);
+        
         modes.Imode(mm,nn,:) = modes.Imode(mm,nn,:)./max(modes.Imode(mm,nn,:));
         modes.Tmode(mm,nn,:) = Tmode(:,n_mode);
         % now plot
 %         figure(1); clf
 %         plot(squeeze(modes.Imode(mm,nn,:)),modes.depth,'bo-');
 %         hold on
+%         ind500 = find_approx(Zmode,500,1);
 %         plot(abs(Tmode(:,n_mode)')./max(abs(Tmode(1:ind500,n_mode))),Zmode,'r'); % 
 %         title(['(',num2str(modes.lon(mm)), 'W, ', num2str(modes.lat(nn)) , 'N)']);
 %         %legendflex({'Inferred mode', 'Theoretical mode'},'anchor',{'s','w'},'nrow',1,'buffer',[40 40],'fontsize',12);
@@ -122,7 +124,8 @@ for mm=1:nlon
     end
 end
 
+modes.zTmode = Zmode;
 %% save to file
 modes.comment = ['Imode(modes.lon,modes.lat,modes.depth) is the mode structure inferred by regressing band passed (6 day - 12 day) dyn. ht against band passed temperature.' ...
-                    ' modes.Tmode is the theoretical temperature mode']; 
+                    ' modes.Tmode is the theoretical temperature mode on grid modes.zTmode']; 
 save Imode.mat modes

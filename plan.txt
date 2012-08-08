@@ -1,0 +1,2 @@
+ - Get newer WOA data
+ - Add error bars and change combined.png plot appropriately.
