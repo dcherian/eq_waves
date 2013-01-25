@@ -1,4 +1,6 @@
 %% make combined plot
+% makes huge plot with a subplot for each point on the TAO array and plots
+% theoretical and inferred mode 
 
 load Imode.mat
 

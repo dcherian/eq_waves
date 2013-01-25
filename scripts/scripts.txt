@@ -1,0 +1,3 @@
+plot_modes.m - makes huge plot 
+filter_mode.m - does actual calculations
+conv_band_pass.m  - band pass filter

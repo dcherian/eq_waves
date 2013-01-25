@@ -9,9 +9,26 @@
 % regression in so that we get max. use of available data. Need to remember
 % how the old TAO data scripts work.
 
+% This is how the script works for each point in the TAO array
+% 1) Load WOA data and calculate theoretical 0 mean vel. + flat bottom mode
+% shapes. The T mode is obtained by multiplying the vertical mode by dT/dz
+% (from WOA).
+% 2) Read TAO temp data, interpolate to standard depth grid.
+% 3) Read dynamic height data and band pass filter around given band (now 6 
+% and 14 days)
+% 4) At each depth, band pass filter interpolated temp data, find missing 
+% data in both DHT & temp, and remove them. Then, do the inversion and
+% calculate "inferred mode" (Imode) again at each depth.
+% 5) Normalize by max amplitude and save data.
+
 %% Data & Parameters
 
 clr
+
+% main options
+windows = [6 12]; % (days) band pass filter windows
+n_modes = 3; % number of modes to calculate
+n_mode = 2; % which theoretical mode am I looking for?
 
 datadir = '..\data\';
 load([datadir 'dynht.mat']);
@@ -27,8 +44,6 @@ modes.lat = [8 5 2 0 -2 -5 -8]; % N
 modes.lon = fliplr([95 110 125 140 155 170 180]);
 
 modes.depth = [1 25 50 75 100 125 150 200 250 300 500]'; % standard depths
-n_modes = 3; % number of modes to calculate
-n_mode = 2; % which theoretical mode am I looking for?
 fontSize = [12 12 14];
 
 nlon = length(modes.lon);
@@ -56,6 +71,7 @@ for mm=1:nlon
 
         N2 = bfrq(S,T,Z,modes.lat(nn));%10^(-6)*ones(32,1);
         [Vmode, Hmode, c] = vertmode(N2,Z,n_modes,0);
+        % calculate temperature mode shape
         Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
 
         %% Filter
@@ -83,15 +99,14 @@ for mm=1:nlon
         %[vars atts dims] = ncdfread(fnameh);
         dht = addnan(squeeze(ncread(fnameh,'DYN_13')),1000)';
 
-        % Running averages 6 day , 12 day and subtract
-        windows = [6 12];
+        % Running averages windows(1) , windows(2) day and subtract
         dhtavg = conv_band_pass(dht,windows);
         
         % Plot 'mode' structure        
         range = 1:length(dhtavg);
         
         % iterate over standard depths
-        for ii = 1:11
+        for ii = 1:length(modes.depth)
             % band pass temperature data
             tavg(ii,:) = conv_band_pass(tbuoy(ii,:),windows);
             
