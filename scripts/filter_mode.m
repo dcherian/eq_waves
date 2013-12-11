@@ -43,7 +43,7 @@ modes.lat = [8 5 2 0 -2 -5 -8]; % N
 % edited lon values to make neater subplots (some lons dont have enough data)
 modes.lon = fliplr([95 110 125 140 155 170 180]);
 
-modes.depth = [1 25 50 75 100 125 150 200 250 300 500]'; % standard depths
+%modes.depth = [1 25 50 75 100 125 150 200 250 300 500]'; % standard depths
 fontSize = [12 12 14];
 
 nlon = length(modes.lon);
@@ -90,10 +90,11 @@ for mm=1:nlon
         if ~exist(fnamet,'file'), continue; end
         %[vars atts dims] = ncdfread(fnamet);
         tbuoy = addnan(squeeze(ncread(fnamet,'T_20')),100);
-        depth = squeeze(ncread(fnamet,'depth'));
+        modes.depth{mm,nn} = squeeze(ncread(fnamet,'depth'));
+        data.depth{mm,nn}  = modes.depth{mm,nn};
         
         % interpolate buoy profiles onto standard depth - COULD BE IMPROVED
-        tbuoy = interp1(depth,tbuoy,modes.depth);
+        %tbuoy = interp1(depth,tbuoy,modes.depth);
         
         % Read dynamic ht
         if ~exist(fnameh,'file'), continue; end
@@ -107,24 +108,27 @@ for mm=1:nlon
         % Plot 'mode' structure        
         range = 1:length(dhtavg);
         
+        infer_mode = nan(size(modes.depth{mm,nn}));
+        tstd = infer_mode;
         % iterate over standard depths
-        for ii = 1:length(modes.depth)
+        for ii = 1:length(modes.depth{mm,nn})
             % band pass temperature data
             tavg(ii,:) = conv_band_pass(tbuoy(ii,:),windows);
 
             % save temperature series for reference and calculate std dev 
             data.tavg{mm,nn,ii,:} = tavg(ii,:);
-            data.tstd(mm,nn,ii) = nanstd(tavg(ii,:));
+            tstd(ii) = nanstd(tavg(ii,:));
             
             % find all nan's in both datasets, negate that mask -> NaN locations are 0
             % replace 0 with NaN and multiple data and remove those
             mask = fillnan(double(~(isnan(dhtavg(range)) | isnan(tavg(ii,range)))),0);
-            modes.Imode(mm,nn,ii) = cut_nan(dhtavg(range).*mask)'\cut_nan(tavg(ii,range).*mask)';
+            infer_mode(ii) = cut_nan(dhtavg(range).*mask)'\cut_nan(tavg(ii,range).*mask)';
         end
         %Imode = fill_gap(dhtavg(range)','linear',15)\fill_gap(tavg(:,range)','linear',15);
         
-        modes.Imode(mm,nn,:) = modes.Imode(mm,nn,:)./max(modes.Imode(mm,nn,:));
+        modes.Imode{mm,nn} = infer_mode./max(infer_mode);
         modes.Tmode(mm,nn,:) = Tmode(:,n_mode);
+        data.tstd{mm,nn} = tstd;
         
         % now plot - moved to plot_modes.m - this script now just creates a
         % mat file that contains data to be plotted
