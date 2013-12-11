@@ -50,7 +50,7 @@ nlon = length(modes.lon);
 nlat = length(modes.lat);
 
 %% Iterate!
-
+clear data
 for mm=1:nlon
     for nn=1:nlat
         %% Calculate theoretical modes
@@ -76,7 +76,7 @@ for mm=1:nlon
 
         %% Filter
 
-        clear vars atts dims tbuoy depth dht tavg tavg1 dhtavg data
+        clear vars atts dims tbuoy depth dht tavg tavg1 dhtavg
 
         if modes.lat(nn) < 0
             fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
@@ -112,7 +112,8 @@ for mm=1:nlon
             % band pass temperature data
             tavg(ii,:) = conv_band_pass(tbuoy(ii,:),windows);
 
-            data.tavg(mm,nn,ii,:) = tavg(ii,:);
+            % save temperature series for reference and calculate std dev 
+            data.tavg{mm,nn,ii,:} = tavg(ii,:);
             data.tstd(mm,nn,ii) = nanstd(tavg(ii,:));
             
             % find all nan's in both datasets, negate that mask -> NaN locations are 0
@@ -124,31 +125,16 @@ for mm=1:nlon
         
         modes.Imode(mm,nn,:) = modes.Imode(mm,nn,:)./max(modes.Imode(mm,nn,:));
         modes.Tmode(mm,nn,:) = Tmode(:,n_mode);
+        
         % now plot - moved to plot_modes.m - this script now just creates a
         % mat file that contains data to be plotted
-%         figure(1); clf
-%         plot(squeeze(modes.Imode(mm,nn,:)),modes.depth,'bo-');
-%         hold on
-%         ind500 = find_approx(Zmode,500,1);
-%         plot(abs(Tmode(:,n_mode)')./max(abs(Tmode(1:ind500,n_mode))),Zmode,'r'); % 
-%         title(['(',num2str(modes.lon(mm)), 'W, ', num2str(modes.lat(nn)) , 'N)']);
-%         %legendflex({'Inferred mode', 'Theoretical mode'},'anchor',{'s','w'},'nrow',1,'buffer',[40 40],'fontsize',12);
-%         legend('Inferred mode','Theoretical mode','Location','SouthEast');
-%         plot(zeros(size(modes.depth)),modes.depth,'k-')
-%         %xlim([-0.2 1.2]);
-%         ylim([modes.depth(1) modes.depth(end)]);
-%         revz;
-%         beautify(fontSize);
-%         
-%         printname = ['images\', num2str(modes.lon(mm)), 'W', num2str(modes.lat(nn)) , 'N', '.png'];
-%         export_fig('-nocrop',printname);
     end
 end
 
 modes.zTmode = Zmode;
 
 data.dhtavg = dhtavg;
-data.comment = ['tavg = bandpassed temperature | dhtavg = band passed dynamic height' ...
+data.comment = ['tavg = bandpassed temperature (cell array)| dhtavg = band passed dynamic height' ...
                 'tstd = standard dev of temp time series at depth'];
 
 %% save to file
