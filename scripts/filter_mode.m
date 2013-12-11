@@ -13,13 +13,13 @@
 % 1) Load WOA data and calculate theoretical 0 mean vel. + flat bottom mode
 % shapes. The T mode is obtained by multiplying the vertical mode by dT/dz
 % (from WOA).
-% 2) Read TAO temp data, interpolate to standard depth grid.
+% 2) Read TAO temp data, ***interpolate*** to standard depth grid.
 % 3) Read dynamic height data and band pass filter around given band (now 6 
 % and 14 days)
 % 4) At each depth, band pass filter interpolated temp data, find missing 
 % data in both DHT & temp, and remove them. Then, do the inversion and
 % calculate "inferred mode" (Imode) again at each depth.
-% 5) Normalize by max amplitude and save data.
+% 5) Normalize by *max amplitude* and save data.
 
 %% Data & Parameters
 
@@ -30,12 +30,12 @@ windows = [6 12]; % (days) band pass filter windows
 n_modes = 3; % number of modes to calculate
 n_mode = 2; % which theoretical mode am I looking for?
 
-datadir = '..\data\';
+datadir = '../data/';
 load([datadir 'dynht.mat']);
 
 if exist('temp','var') ~= 1 && exist('sal','var') ~=1
     fprintf('\n Loading WOA 05 data \n\n');
-    load '..\data\woa05.mat';
+    load '../data/woa05.mat';
 end
 
 modes.lat = [8 5 2 0 -2 -5 -8]; % N
@@ -76,14 +76,14 @@ for mm=1:nlon
 
         %% Filter
 
-        clear vars atts dims tbuoy depth dht tavg tavg1 dhtavg
+        clear vars atts dims tbuoy depth dht tavg tavg1 dhtavg data
 
         if modes.lat(nn) < 0
-            fnamet = [datadir 'temp\t',   num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
-            fnameh = [datadir 'dynht\dyn',num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
+            fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
+            fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
         else
-            fnamet = [datadir 'temp\t',   num2str(abs(modes.lat(nn))),'n',num2str(modes.lon(mm)),'w_dy.cdf'];            
-            fnameh = [datadir 'dynht\dyn',num2str(abs(modes.lat(nn))),'n',num2str(modes.lon(mm)),'w_dy.cdf'];
+            fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))),'n',num2str(modes.lon(mm)),'w_dy.cdf'];            
+            fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))),'n',num2str(modes.lon(mm)),'w_dy.cdf'];
         end
         
         % Read & interpolate temp
@@ -91,6 +91,8 @@ for mm=1:nlon
         %[vars atts dims] = ncdfread(fnamet);
         tbuoy = addnan(squeeze(ncread(fnamet,'T_20')),100);
         depth = squeeze(ncread(fnamet,'depth'));
+        
+        % interpolate buoy profiles onto standard depth - COULD BE IMPROVED
         tbuoy = interp1(depth,tbuoy,modes.depth);
         
         % Read dynamic ht
@@ -109,6 +111,9 @@ for mm=1:nlon
         for ii = 1:length(modes.depth)
             % band pass temperature data
             tavg(ii,:) = conv_band_pass(tbuoy(ii,:),windows);
+
+            data.tavg(mm,nn,ii,:) = tavg(ii,:);
+            data.tstd(mm,nn,ii) = nanstd(tavg(ii,:));
             
             % find all nan's in both datasets, negate that mask -> NaN locations are 0
             % replace 0 with NaN and multiple data and remove those
@@ -119,7 +124,8 @@ for mm=1:nlon
         
         modes.Imode(mm,nn,:) = modes.Imode(mm,nn,:)./max(modes.Imode(mm,nn,:));
         modes.Tmode(mm,nn,:) = Tmode(:,n_mode);
-        % now plot
+        % now plot - moved to plot_modes.m - this script now just creates a
+        % mat file that contains data to be plotted
 %         figure(1); clf
 %         plot(squeeze(modes.Imode(mm,nn,:)),modes.depth,'bo-');
 %         hold on
@@ -140,7 +146,12 @@ for mm=1:nlon
 end
 
 modes.zTmode = Zmode;
+
+data.dhtavg = dhtavg;
+data.comment = ['tavg = bandpassed temperature | dhtavg = band passed dynamic height' ...
+                'tstd = standard dev of temp time series at depth'];
+
 %% save to file
 modes.comment = ['Imode(modes.lon,modes.lat,modes.depth) is the mode structure inferred by regressing band passed (6 day - 12 day) dyn. ht against band passed temperature.' ...
                     ' modes.Tmode is the theoretical temperature mode on grid modes.zTmode']; 
-save Imode.mat modes
+save Imode.mat modes data

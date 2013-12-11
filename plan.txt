@@ -1,3 +1,9 @@
 ToDo
 	- Get newer WOA data
 	- Add error bars and change combined.png plot appropriately.
+	
+	- remove filtering on temperature - does not work well at all - see combined_noTfilter.png
+	- plot SD of filtered temperature with depth
+
+Things that could be improves
+	1) I interpolate TAO profile onto standard depth grid - could do without and get inferred mode with greater fidelity
