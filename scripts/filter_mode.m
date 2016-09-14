@@ -105,6 +105,9 @@ for mm=1:nlon
         %clear vars atts dims
         %[vars atts dims] = ncdfread(fnameh);
 
+        timedht = ncread(fnameh, 'time');
+        timetemp = ncread(fnamet, 'time');
+
         dht = double(addnan(squeeze(ncread(fnameh,'DYN_13')),1000))';
 
         dht = dht - nanmean(dht);
@@ -126,8 +129,10 @@ for mm=1:nlon
 
         % Needed because dynamic height is not available at all
         % time points with temperature measurement
-        range = 1:length(dhtavg);
-        assert(all(timetemp(range) == timedht(range)));
+        start = find(timetemp == timedht(1));
+        stop = find(timetemp == timedht(end));
+        range = start:stop;
+        assert(all(timetemp(range) == timedht));
         
         infer_mode = nan(size(modes.depth{mm,nn}));
         tstd = infer_mode;
