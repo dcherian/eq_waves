@@ -1,6 +1,18 @@
 % Get mode shape from data by band pass filtering around expected frequency
 % Deepak Cherian
 
+% This is how the script works for each point in the TAO array
+% 1) Load WOA data and calculate theoretical 0 mean vel. + flat bottom mode
+% shapes. The T mode is obtained by multiplying the vertical mode by dT/dz
+% (from WOA).
+% 2) Read TAO temp data
+% 3) Read dynamic height data and band pass filter around given band (now 6
+% and 14 days)
+% 4) At each depth, band pass filter interpolated temp data, find missing
+% data in both DHT & temp, and remove them. Then, do the inversion and
+% calculate "inferred mode" (Imode) again at each depth.
+% 5) Normalize by *max amplitude* and save data.
+
 % All below fixed - 25th July 2012
 % Issues (30th Sept. 2011)
 % 1) Present filtering method results in crap in the first and last two points.
@@ -8,18 +20,6 @@
 % 3) The main issue is finding a suitable time interval to run the
 % regression in so that we get max. use of available data. Need to remember
 % how the old TAO data scripts work.
-
-% This is how the script works for each point in the TAO array
-% 1) Load WOA data and calculate theoretical 0 mean vel. + flat bottom mode
-% shapes. The T mode is obtained by multiplying the vertical mode by dT/dz
-% (from WOA).
-% 2) Read TAO temp data, ***interpolate*** to standard depth grid.
-% 3) Read dynamic height data and band pass filter around given band (now 6 
-% and 14 days)
-% 4) At each depth, band pass filter interpolated temp data, find missing 
-% data in both DHT & temp, and remove them. Then, do the inversion and
-% calculate "inferred mode" (Imode) again at each depth.
-% 5) Normalize by *max amplitude* and save data.
 
 %% Data & Parameters
 
@@ -56,7 +56,7 @@ nlat = length(modes.lat);
 clear data
 for mm=1:nlon
     for nn=1:nlat
-        %% Calculate theoretical modes
+        %% Step 1. Calculate theoretical modes
 
         % Locate (modes.lon,lat)     
         ilon = find_approx(X,360-modes.lon(mm),1);
@@ -77,21 +77,25 @@ for mm=1:nlon
         % calculate temperature mode shape
         Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
 
-        %% Filter
+        %% Filter out TAO data
 
-        clear vars atts dims tbuoy depth dht tavg tavg1 dhtavg
+        clear tbuoy depth dht tavg tavg1 dhtavg
 
+        % read in TAO measurements
         if modes.lat(nn) < 0
-            fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
-            fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))),'s',num2str(modes.lon(mm)),'w_dy.cdf'];
+            fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))), ...
+                      's',num2str(modes.lon(mm)),'w_dy.cdf'];
+            fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))), ...
+                      's',num2str(modes.lon(mm)),'w_dy.cdf'];
         else
-            fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))),'n',num2str(modes.lon(mm)),'w_dy.cdf'];            
-            fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))),'n',num2str(modes.lon(mm)),'w_dy.cdf'];
+            fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))), ...
+                      'n',num2str(modes.lon(mm)),'w_dy.cdf'];
+            fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))), ...
+                      'n',num2str(modes.lon(mm)),'w_dy.cdf'];
         end
         
         % Read & interpolate temp
         if ~exist(fnamet,'file'), continue; end
-        %[vars atts dims] = ncdfread(fnamet);
         tbuoy = addnan(squeeze(ncread(fnamet,'T_20')),100);
         modes.depth{mm,nn} = squeeze(ncread(fnamet,'depth'));
         data.depth{mm,nn}  = modes.depth{mm,nn};
@@ -101,13 +105,14 @@ for mm=1:nlon
         
         % Read dynamic ht
         if ~exist(fnameh,'file'), continue; end
-
-        timedht = ncread(fnameh, 'time');
-        timetemp = ncread(fnamet, 'time');
-
         dht = double(addnan(squeeze(ncread(fnameh,'DYN_13')),1000))';
         dht = dht - nanmean(dht);
 
+        % Read in time vectors for both variables
+        timedht = ncread(fnameh, 'time');
+        timetemp = ncread(fnamet, 'time');
+
+        % Bandpass filter dynamic height
         if opt.butterworth
             [b,a] = butter(12, sort(2*pi./opt.windows/(2*pi/2)), 'bandpass');
             dhtavg = filter(b,a,dht);
@@ -123,19 +128,22 @@ for mm=1:nlon
             keyboard;
         end
 
+        % Make sure I'm using same time interval for both variables
         % Needed because dynamic height is not available at all
         % time points with temperature measurement
         start = find(timetemp == timedht(1));
         stop = find(timetemp == timedht(end));
         range = start:stop;
         assert(all(timetemp(range) == timedht));
-        
+
+        % nans
         infer_mode = nan(size(modes.depth{mm,nn}));
         tstd = infer_mode;
-        % iterate over standard depths
+
+        % iterate over depths and regress at each
         for ii = 1:length(modes.depth{mm,nn})
             if opt.filter_temp
-                % band pass temperature data
+                % band pass filter temperature data
                 if opt.butterworth
                     tavg(ii,:) = filter(b,a,tbuoy(ii,:));
                 else
@@ -154,11 +162,11 @@ for mm=1:nlon
             data.tavg{mm,nn,ii,:} = tavg(ii,:);
             tstd(ii) = nanstd(tavg(ii,:));
             
-            % find all nan's in both datasets, negate that mask -> NaN locations are 0
-            % replace 0 with NaN and multiple data and remove those
+            % find all nan's in both datasets
             treduced = tavg(ii, range);
             mask = ~(isnan(dhtavg) | isnan(treduced));
 
+            % regress to find mode shape
             infer_mode(ii) = dhtavg(mask)' \ treduced(mask)';
         end
         %Imode = fill_gap(dhtavg(range)','linear',15)\fill_gap(tavg(:,range)','linear',15);
