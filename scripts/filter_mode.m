@@ -48,7 +48,6 @@ modes.lat = [8 5 2 0 -2 -5 -8]; % N
 modes.lon = fliplr([95 110 125 140 155 170 180]);
 
 %modes.depth = [1 25 50 75 100 125 150 200 250 300 500]'; % standard depths
-fontSize = [12 12 14];
 
 nlon = length(modes.lon);
 nlat = length(modes.lat);
@@ -102,14 +101,11 @@ for mm=1:nlon
         
         % Read dynamic ht
         if ~exist(fnameh,'file'), continue; end
-        %clear vars atts dims
-        %[vars atts dims] = ncdfread(fnameh);
 
         timedht = ncread(fnameh, 'time');
         timetemp = ncread(fnamet, 'time');
 
         dht = double(addnan(squeeze(ncread(fnameh,'DYN_13')),1000))';
-
         dht = dht - nanmean(dht);
 
         if opt.butterworth
@@ -170,9 +166,6 @@ for mm=1:nlon
         modes.Imode{mm,nn} = infer_mode./max(abs(infer_mode));
         modes.Tmode(mm,nn,:) = Tmode(:,opt.n_mode);
         data.tstd{mm,nn} = tstd;
-        
-        % now plot - moved to plot_modes.m - this script now just creates a
-        % mat file that contains data to be plotted
     end
 end
 
