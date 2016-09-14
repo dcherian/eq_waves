@@ -23,12 +23,15 @@
 
 %% Data & Parameters
 
-clr
+clear
 
 % main options
+butterworth = 1; % butterworth filter if 1, else running mean
 windows = [6 12]; % (days) band pass filter windows
 n_modes = 3; % number of modes to calculate
 n_mode = 2; % which theoretical mode am I looking for?
+
+debug = 0; % debugging spectrum plots
 
 datadir = '../data/';
 load([datadir 'dynht.mat']);
@@ -100,11 +103,26 @@ for mm=1:nlon
         if ~exist(fnameh,'file'), continue; end
         %clear vars atts dims
         %[vars atts dims] = ncdfread(fnameh);
-        dht = addnan(squeeze(ncread(fnameh,'DYN_13')),1000)';
 
-        % Running averages windows(1) , windows(2) day and subtract
-        dhtavg = conv_band_pass(dht,windows);
-        
+        dht = double(addnan(squeeze(ncread(fnameh,'DYN_13')),1000))';
+
+        dht = dht - nanmean(dht);
+
+        if butterworth
+            [b,a] = butter(12, sort(2*pi./windows/(2*pi/2)), 'bandpass');
+            dhtavg = filter(b,a,dht);
+        else
+            % Running averages windows(1) , windows(2) day and subtract
+            dhtavg = conv_band_pass(dht,windows);
+        end
+
+        if debug
+            PlotSpectrum(dht);
+            PlotSpectrum(dhtavg);
+            linex(1./windows);
+            keyboard;
+        end
+
         % Plot 'mode' structure        
         range = 1:length(dhtavg);
         
@@ -113,7 +131,18 @@ for mm=1:nlon
         % iterate over standard depths
         for ii = 1:length(modes.depth{mm,nn})
             % band pass temperature data
-            tavg(ii,:) = conv_band_pass(tbuoy(ii,:),windows);
+            % if butterworth
+            %     tavg(ii,:) = filter(b,a,tbuoy(ii,:));
+            % else
+            %     tavg(ii,:) = conv_band_pass(tbuoy(ii,:),windows);
+            % end
+
+            tavg(ii,:) = tbuoy(ii,:);
+
+            if debug
+                PlotSpectrum(tavg(ii,:));
+                keyboard;
+            end
 
             % save temperature series for reference and calculate std dev 
             data.tavg{mm,nn,ii,:} = tavg(ii,:);
@@ -122,7 +151,8 @@ for mm=1:nlon
             % find all nan's in both datasets, negate that mask -> NaN locations are 0
             % replace 0 with NaN and multiple data and remove those
             mask = fillnan(double(~(isnan(dhtavg(range)) | isnan(tavg(ii,range)))),0);
-            infer_mode(ii) = cut_nan(dhtavg(range).*mask)'\cut_nan(tavg(ii,range).*mask)';
+            infer_mode(ii) = cut_nan(dhtavg(range).*mask)' ...
+                \ cut_nan(tavg(ii,range).*mask)';
         end
         %Imode = fill_gap(dhtavg(range)','linear',15)\fill_gap(tavg(:,range)','linear',15);
         
@@ -137,8 +167,10 @@ end
 
 modes.zTmode = Zmode;
 
+data.hash = githash([mfilename('fullpath') '.m']);
 data.dhtavg = dhtavg;
-data.comment = ['tavg = bandpassed temperature (cell array)| dhtavg = band passed dynamic height' ...
+data.comment = ['tavg = bandpassed temperature (cell array) | ' ...
+                'dhtavg = band passed dynamic height' ...
                 'tstd = standard dev of temp time series at depth'];
 
 %% save to file
