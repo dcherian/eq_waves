@@ -28,9 +28,9 @@ clear
 debug = 0; % debugging spectrum plots
 
 % main options
-opt.butterworth = 0; % butterworth filter if 1, else running mean
+opt.butterworth = 1; % butterworth filter if 1, else running mean
 opt.filter_temp = 1; % filter temperature also?
-opt.windows = [6 12]; % (days) band pass filter windows
+opt.windows = [5 9]; % (days) band pass filter windows
 opt.n_modes = 3; % number of modes to calculate
 opt.n_mode = 2; % which theoretical mode am I looking for?
 
