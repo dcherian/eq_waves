@@ -96,7 +96,7 @@ for mm=1:nlon
         
         % Read & interpolate temp
         if ~exist(fnamet,'file'), continue; end
-        tbuoy = addnan(squeeze(ncread(fnamet,'T_20')),100);
+        tbuoy = double(addnan(squeeze(ncread(fnamet,'T_20')),100));
         modes.depth{mm,nn} = squeeze(ncread(fnamet,'depth'));
         data.depth{mm,nn}  = modes.depth{mm,nn};
         
@@ -145,7 +145,9 @@ for mm=1:nlon
             if opt.filter_temp
                 % band pass filter temperature data
                 if opt.butterworth
-                    tavg(ii,:) = filter(b,a,tbuoy(ii,:));
+                    % filter removing NaNs
+                    tvec = cut_nan(tbuoy(ii,:));
+                    tavg(ii,~isnan(tbuoy(ii,:))) = filter(b,a,tvec-mean(tvec));
                 else
                     tavg(ii,:) = conv_band_pass(tbuoy(ii,:),opt.windows);
                 end
@@ -154,6 +156,7 @@ for mm=1:nlon
             end
 
             if debug
+                PlotSpectrum(cut_nan(tbuoy(ii,:)));
                 PlotSpectrum(cut_nan(tavg(ii,:)));
                 keyboard;
             end
