@@ -1,0 +1,63 @@
+<HTML>
+
+<HEAD>
+<TITLE>Compute Date and Time from NetCDF file time</TITLE>
+</HEAD>
+
+<BODY bgcolor="#ffffff" text="#000000" text="#000000" 
+link="#0000FF" vlink="#7F0F9F" alink="#FF0000">
+
+<FORM METHOD="POST" ACTION="/cgi-tao/cover.cgi">
+
+<table align="left" width="620">
+
+<tr><td>
+
+<H2>Two integer times in NetCDF files can be easily converted
+to calendar dates</H2>
+
+</td></tr>
+
+<tr><td>
+
+<P>
+The double-integer times in TAO/TRITON, PIRATA, and RAMA netcdf 
+files are Julian Day (time1) and milliseconds since 00:00 GMT 
+(time2). You can enter a double-integer time below to convert 
+it to a calendar date. If you wish to do this in a program, see
+the example program which comes with your data (read_netcdf.f).
+<P>
+<b>NOTE</b>: the Julian Day values in time1 are counted from 
+the day January 1 in the year -4713. You can see this
+if you enter 0 0 for time1 and time2 in the boxes below.
+<P>
+
+</td></tr>
+
+<tr><td>
+Enter First Integer (Julian Day time1):
+<INPUT TYPE="TEXT" NAME = "P1" value="2453629"><br>
+</td></tr>
+
+<tr><td>
+Enter Seconed Integer (Milliseconds time2):
+<INPUT TYPE="TEXT" NAME = "P2" value="43200000"><br>
+</td></tr>
+
+<tr><td>
+<INPUT TYPE="submit" VALUE="Compute Date and Time">
+</td></tr>
+
+</table>
+
+<INPUT TYPE="hidden" NAME="script" VALUE="deliv/epstodate.csh">
+
+</FORM>
+
+<P><P>
+
+
+</CENTER>
+
+</BODY>
+</HTML>

@@ -1,4 +1,3 @@
-*.mat
 *.asv
 *.m~
 *.prf
@@ -10,5 +9,3 @@
 *.pdf
 *.7z
 *.zip
-images/
-data/
