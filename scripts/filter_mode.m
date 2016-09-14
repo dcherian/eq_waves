@@ -27,6 +27,7 @@ clear
 
 % main options
 butterworth = 1; % butterworth filter if 1, else running mean
+filter_temp = 1; % filter temperature also?
 windows = [6 12]; % (days) band pass filter windows
 n_modes = 3; % number of modes to calculate
 n_mode = 2; % which theoretical mode am I looking for?
@@ -124,20 +125,22 @@ for mm=1:nlon
         end
 
         % Plot 'mode' structure        
-        range = 1:length(dhtavg);
+        %        range = 1:length(dhtavg);
         
         infer_mode = nan(size(modes.depth{mm,nn}));
         tstd = infer_mode;
         % iterate over standard depths
         for ii = 1:length(modes.depth{mm,nn})
-            % band pass temperature data
-            % if butterworth
-            %     tavg(ii,:) = filter(b,a,tbuoy(ii,:));
-            % else
-            %     tavg(ii,:) = conv_band_pass(tbuoy(ii,:),windows);
-            % end
-
-            tavg(ii,:) = tbuoy(ii,:);
+            if filter_temp
+                % band pass temperature data
+                if butterworth
+                    tavg(ii,:) = filter(b,a,tbuoy(ii,:));
+                else
+                    tavg(ii,:) = conv_band_pass(tbuoy(ii,:),windows);
+                end
+            else
+                tavg(ii,:) = tbuoy(ii,:);
+            end
 
             if debug
                 PlotSpectrum(tavg(ii,:));
