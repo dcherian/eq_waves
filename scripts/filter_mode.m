@@ -25,14 +25,14 @@
 
 clear
 
-% main options
-butterworth = 1; % butterworth filter if 1, else running mean
-filter_temp = 1; % filter temperature also?
-windows = [6 12]; % (days) band pass filter windows
-n_modes = 3; % number of modes to calculate
-n_mode = 2; % which theoretical mode am I looking for?
-
 debug = 0; % debugging spectrum plots
+
+% main options
+opt.butterworth = 0; % butterworth filter if 1, else running mean
+opt.filter_temp = 1; % filter temperature also?
+opt.windows = [6 12]; % (days) band pass filter windows
+opt.n_modes = 3; % number of modes to calculate
+opt.n_mode = 2; % which theoretical mode am I looking for?
 
 datadir = '../data/';
 load([datadir 'dynht.mat']);
@@ -74,7 +74,7 @@ for mm=1:nlon
         %P = sw_pres(modes.depth,modes.lat);
 
         N2 = bfrq(S,T,Z,modes.lat(nn));%10^(-6)*ones(32,1);
-        [Vmode, Hmode, c] = vertmode(N2,Z,n_modes,0);
+        [Vmode, Hmode, c] = vertmode(N2,Z,opt.n_modes,0);
         % calculate temperature mode shape
         Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
 
@@ -112,18 +112,18 @@ for mm=1:nlon
 
         dht = dht - nanmean(dht);
 
-        if butterworth
-            [b,a] = butter(12, sort(2*pi./windows/(2*pi/2)), 'bandpass');
+        if opt.butterworth
+            [b,a] = butter(12, sort(2*pi./opt.windows/(2*pi/2)), 'bandpass');
             dhtavg = filter(b,a,dht);
         else
             % Running averages windows(1) , windows(2) day and subtract
-            dhtavg = conv_band_pass(dht,windows);
+            dhtavg = conv_band_pass(dht,opt.windows);
         end
 
         if debug
             PlotSpectrum(dht);
             PlotSpectrum(dhtavg);
-            linex(1./windows);
+            linex(1./opt.windows);
             keyboard;
         end
 
@@ -138,19 +138,19 @@ for mm=1:nlon
         tstd = infer_mode;
         % iterate over standard depths
         for ii = 1:length(modes.depth{mm,nn})
-            if filter_temp
+            if opt.filter_temp
                 % band pass temperature data
-                if butterworth
+                if opt.butterworth
                     tavg(ii,:) = filter(b,a,tbuoy(ii,:));
                 else
-                    tavg(ii,:) = conv_band_pass(tbuoy(ii,:),windows);
+                    tavg(ii,:) = conv_band_pass(tbuoy(ii,:),opt.windows);
                 end
             else
                 tavg(ii,:) = tbuoy(ii,:);
             end
 
             if debug
-                PlotSpectrum(tavg(ii,:));
+                PlotSpectrum(cut_nan(tavg(ii,:)));
                 keyboard;
             end
 
@@ -168,7 +168,7 @@ for mm=1:nlon
         %Imode = fill_gap(dhtavg(range)','linear',15)\fill_gap(tavg(:,range)','linear',15);
         
         modes.Imode{mm,nn} = infer_mode./max(abs(infer_mode));
-        modes.Tmode(mm,nn,:) = Tmode(:,n_mode);
+        modes.Tmode(mm,nn,:) = Tmode(:,opt.n_mode);
         data.tstd{mm,nn} = tstd;
         
         % now plot - moved to plot_modes.m - this script now just creates a
@@ -187,4 +187,4 @@ data.comment = ['tavg = bandpassed temperature (cell array) | ' ...
 %% save to file
 modes.comment = ['Imode(modes.lon,modes.lat,modes.depth) is the mode structure inferred by regressing band passed (6 day - 12 day) dyn. ht against band passed temperature.' ...
                     ' modes.Tmode is the theoretical temperature mode on grid modes.zTmode']; 
-save Imode.mat modes data
+save Imode.mat modes data opt
