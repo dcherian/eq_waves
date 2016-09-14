@@ -124,8 +124,10 @@ for mm=1:nlon
             keyboard;
         end
 
-        % Plot 'mode' structure        
-        %        range = 1:length(dhtavg);
+        % Needed because dynamic height is not available at all
+        % time points with temperature measurement
+        range = 1:length(dhtavg);
+        assert(all(timetemp(range) == timedht(range)));
         
         infer_mode = nan(size(modes.depth{mm,nn}));
         tstd = infer_mode;
@@ -153,13 +155,14 @@ for mm=1:nlon
             
             % find all nan's in both datasets, negate that mask -> NaN locations are 0
             % replace 0 with NaN and multiple data and remove those
-            mask = fillnan(double(~(isnan(dhtavg(range)) | isnan(tavg(ii,range)))),0);
-            infer_mode(ii) = cut_nan(dhtavg(range).*mask)' ...
-                \ cut_nan(tavg(ii,range).*mask)';
+            treduced = tavg(ii, range);
+            mask = ~(isnan(dhtavg) | isnan(treduced));
+
+            infer_mode(ii) = dhtavg(mask)' \ treduced(mask)';
         end
         %Imode = fill_gap(dhtavg(range)','linear',15)\fill_gap(tavg(:,range)','linear',15);
         
-        modes.Imode{mm,nn} = infer_mode./max(infer_mode);
+        modes.Imode{mm,nn} = infer_mode./max(abs(infer_mode));
         modes.Tmode(mm,nn,:) = Tmode(:,n_mode);
         data.tstd{mm,nn} = tstd;
         
