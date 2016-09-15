@@ -11,4 +11,6 @@ opt.n_mode = 2; % which theoretical mode am I looking for?
 
 InferModeShape(opt);
 
-%% Plot shape
+%% Plot bc2m1 shape
+
+PlotModeMap('bc2m1');
