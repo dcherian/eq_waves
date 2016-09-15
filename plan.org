@@ -1,8 +1,22 @@
-* ToDo
+* ToDo [2/8]
  - [ ] Get newer WOA data
+ - [ ] make sure I can redownload TAO data - reproducibility!
+ - [ ] turn scripts to generic functions
+ - [ ] generic run script to go with above
  - [ ] Add error bars and change combined.png plot appropriately.
  - [ ] remove filtering on temperature - does not work well at all - see combined_noTfilter.png
- - [ ] plot SD of filtered temperature with depth
-
-* Things that could be improved
- 1) I interpolate TAO profile onto standard depth grid - could do without and get inferred mode with greater fidelity
+ - [X] plot SD of filtered temperature with depth
+ - [X] I interpolate TAO profile onto standard depth grid - could do without and get inferred mode with greater fidelity
+* Notes
+** Sept 14, 2016
+- Added butterworth filter.
+- Filtering both temperature and dynamic height consistently works for both butterworth and running mean filters
+* Meetings
+** Next
+- [ ] Butterworth v/s running mean filtering
+- [ ] Filter window
+- [ ] Filtering with gaps in data time series
+- [ ] filtering temp also?
+- [ ] remove mean before filtering : makes filtered time series a lot better
+- [ ] error bars?
+- [ ] J Lilly multitaper spectra
