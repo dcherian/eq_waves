@@ -105,10 +105,11 @@ function [] = InferModeShape(opt)
           end
 
           if opt.debug
+              hdbg = figure;
+              hdbgax1 = subplot(211);
               PlotSpectrum(tao.dht);
               PlotSpectrum(dhtfilt);
               linex(1./opt.windows);
-              keyboard;
           end
 
           % Make sure I'm using same time interval for both variables
@@ -142,9 +143,9 @@ function [] = InferModeShape(opt)
               end
 
               if opt.debug
+                  axes(hdbgax1);
                   PlotSpectrum(cut_nan(tao.T(ii,:)));
                   PlotSpectrum(cut_nan(Tfilt(ii,:)));
-                  keyboard;
               end
 
               % save temperature series for reference and calculate std dev
@@ -157,7 +158,16 @@ function [] = InferModeShape(opt)
 
               % regress to find mode shape
               infer_mode(ii) = dhtfilt(mask)' \ Treduced(mask)';
+
+              if opt.debug
+                  figure(hdbg);
+                  hdbgax2 = subplot(212);
+                  plot(dhtfilt(mask)); hold on;
+                  plot(Treduced(mask));
+                  title('filtered time series for regression');
+                  keyboard;
           end
+
           %Imode = fill_gap(dhtfilt(range)','linear',15)\fill_gap(Tfilt(:,range)','linear',15);
 
           modes.InferredMode{mm,nn} = infer_mode./max(abs(infer_mode));
