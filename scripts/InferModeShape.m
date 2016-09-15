@@ -121,9 +121,10 @@ function [] = InferModeShape(opt)
 
           % nans
           infer_mode = nan(size(modes.depth{mm,nn}));
-          tstd = infer_mode;
+          Tstd = infer_mode;
 
           % iterate over depths and regress at each
+          clear Tvec Tfilt Tstd
           for ii = 1:length(modes.depth{mm,nn})
               if opt.filter_temp
                   % band pass filter temperature data
