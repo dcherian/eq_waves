@@ -79,11 +79,13 @@ function [] = PlotModeMap(name)
   hax(46).XLabel.Color = hax(45).XLabel.Color;
 
   figure(hfig)
-  [ax,h] = suplabel([name ' (' num2str(opt.windows) ') | ' ...
+  [ax,h] = suplabel([name ' (' num2str(opt.filt.cutoff) ') | ' ...
                      'Red = Theoretical Mode, Blue = Inferred Mode, ' ...
                      'Black = Std. of temp at depth'],'t');
   ax.YLabel.String = 'Z (m)';
   set(h,'FontSize',fontSize(3));
+
+  linkaxes(ax, 'xy');
 
   %export_fig('-nocrop','-r150','../images/' name '.png');
 end

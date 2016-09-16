@@ -95,13 +95,7 @@ function [] = InferModeShape(opt)
           tao.timetemp = ncread(fnamet, 'time');
 
           % Bandpass filter dynamic height
-          if opt.butterworth
-              [b,a] = butter(12, sort(2*pi./opt.windows/(2*pi/2)), 'bandpass');
-              dhtfilt = filter(b,a,tao.dht);
-          else
-              % Running average windows(1) , windows(2) day and subtract
-              dhtfilt = conv_band_pass(tao.dht,opt.windows);
-          end
+          dhtfilt = BandPass(tao.dht, opt.filt);
 
           if opt.debug
               hdbg = figure;
@@ -128,18 +122,7 @@ function [] = InferModeShape(opt)
           for ii = 1:length(modes.depth{mm,nn})
               if opt.filter_temp
                   % band pass filter temperature data
-                  if opt.butterworth
-                      % filter removing NaNs
-                      Tvec = cut_nan(tao.T(ii,:));
-                      Tfilt(ii,~isnan(tao.T(ii,:))) = ...
-                          filter(b,a,Tvec-mean(Tvec));
-                      Tfilt(ii,isnan(tao.T(ii,:))) = NaN;
-                      filtrange = range;
-                  else
-                      Tfilt(ii,:) = conv_band_pass(tao.T(ii,range), ...
-                                                   opt.windows);
-                      filtrange = 1:size(Tfilt,2);
-                  end
+                  Tfilt(ii,:) = BandPass(tao.T(ii,:), opt.filt);
               else
                   Tfilt(ii,:) = tao.T(ii,:);
               end
@@ -155,11 +138,15 @@ function [] = InferModeShape(opt)
               Tstd(ii) = nanstd(Tfilt(ii,:));
 
               % find all nan's in both datasets
-              Treduced = Tfilt(ii, filtrange);
+              Treduced = Tfilt(ii, range);
               mask = ~(isnan(dhtfilt) | isnan(Treduced));
 
               % regress to find mode shape
               infer_mode(ii) = dhtfilt(mask)' \ Treduced(mask)';
+
+              if sum(mask) < 2000
+                  infer_mode(ii) = NaN;
+              end
 
               if opt.debug
                   figure(hdbg);
@@ -170,9 +157,9 @@ function [] = InferModeShape(opt)
                   keyboard;
               end
 
-              %Imode = fill_gap(dhtfilt(filtrange)','linear',15)\fill_gap(Tfilt(:,filtrange)','linear',15);
+              %Imode = fill_gap(dhtfilt(range)','linear',15)\fill_gap(Tfilt(:,range)','linear',15);
 
-              modes.InferredMode{mm,nn} = infer_mode./max(abs(infer_mode));
+              modes.InferredMode{mm,nn} = infer_mode./nanmax(abs(infer_mode));
               modes.IdealTempMode(mm,nn,:) = Tmode(:,opt.n_mode);
               data.Tstd{mm,nn} = Tstd;
           end
