@@ -169,13 +169,14 @@ function [] = InferModeShape(opt)
                   plot(Treduced(mask));
                   title('filtered time series for regression');
                   keyboard;
+              end
+
+              %Imode = fill_gap(dhtfilt(filtrange)','linear',15)\fill_gap(Tfilt(:,filtrange)','linear',15);
+
+              modes.InferredMode{mm,nn} = infer_mode./max(abs(infer_mode));
+              modes.IdealTempMode(mm,nn,:) = Tmode(:,opt.n_mode);
+              data.Tstd{mm,nn} = Tstd;
           end
-
-          %Imode = fill_gap(dhtfilt(range)','linear',15)\fill_gap(Tfilt(:,range)','linear',15);
-
-          modes.InferredMode{mm,nn} = infer_mode./max(abs(infer_mode));
-          modes.IdealTempMode(mm,nn,:) = Tmode(:,opt.n_mode);
-          data.Tstd{mm,nn} = Tstd;
       end
   end
 
@@ -196,5 +197,4 @@ function [] = InferModeShape(opt)
                    ' temperature mode on grid modes.zTmode'];
 
   save([opt.name '.mat'], 'modes', 'data', 'opt', 'hash');
-
 end
