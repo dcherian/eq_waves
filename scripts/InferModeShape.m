@@ -134,9 +134,12 @@ function [] = InferModeShape(opt)
                       Tvec = cut_nan(tao.T(ii,:));
                       Tfilt(ii,~isnan(tao.T(ii,:))) = ...
                           filter(b,a,Tvec-mean(Tvec));
+                      Tfilt(ii,isnan(tao.T(ii,:))) = NaN;
+                      filtrange = range;
                   else
-                      Tfilt(ii,:) = ...
-                          conv_band_pass(tao.T(ii,:),opt.windows);
+                      Tfilt(ii,:) = conv_band_pass(tao.T(ii,range), ...
+                                                   opt.windows);
+                      filtrange = 1:size(Tfilt,2);
                   end
               else
                   Tfilt(ii,:) = tao.T(ii,:);
@@ -153,7 +156,7 @@ function [] = InferModeShape(opt)
               Tstd(ii) = nanstd(Tfilt(ii,:));
 
               % find all nan's in both datasets
-              Treduced = Tfilt(ii, range);
+              Treduced = Tfilt(ii, filtrange);
               mask = ~(isnan(dhtfilt) | isnan(Treduced));
 
               % regress to find mode shape
