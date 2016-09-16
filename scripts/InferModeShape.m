@@ -64,16 +64,15 @@ function [] = InferModeShape(opt)
 
           % read in TAO measurements
           if modes.lat(nn) < 0
-              fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))), ...
-                        's',num2str(modes.lon(mm)),'w_dy.cdf'];
-              fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))), ...
-                        's',num2str(modes.lon(mm)),'w_dy.cdf'];
+              latstr = 's';
           else
-              fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))), ...
-                        'n',num2str(modes.lon(mm)),'w_dy.cdf'];
-              fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))), ...
-                        'n',num2str(modes.lon(mm)),'w_dy.cdf'];
+              latstr = 'n';
           end
+
+          fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))), ...
+                    latstr,num2str(modes.lon(mm)),'w_dy.cdf'];
+          fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))), ...
+                    latstr,num2str(modes.lon(mm)),'w_dy.cdf'];
 
           % Read & interpolate temp
           if ~exist(fnamet,'file'), continue; end
