@@ -42,8 +42,8 @@ function [out] = FilterSeries(in, opt)
                                opt.halfdef, opt.window);
 
         % NaN out contaminated edges
-        out(range(1) : min(range(1)+opt.N+1, length(in))) = NaN;
-        out( max(1,range(end)-opt.N-1) : range(end)) = NaN;
+        out(range(1) : min(range(1)+ceil(opt.N)+1, length(in))) = NaN;
+        out( max(1,range(end)-ceil(opt.N)-1) : range(end)) = NaN;
 
         % set start for next iteration to be end of current gap.
         start = gapend(ii)+1;
