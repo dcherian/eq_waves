@@ -10,11 +10,14 @@ function [out] = BandPass(in, opt)
 
     if opt.debugflag
         figure;
-        PlotSpectrum(in);
+        hin = PlotSpectrum(in);
+        hin.LineWidth = 1;
         hold on;
         PlotSpectrum(low*1);
         PlotSpectrum(hi*1);
-        PlotSpectrum(out*1);
+        hout = PlotSpectrum(out*1);
+        legend('input', 'low-freq', 'high-freq', 'out');
         linex(1./opt.cutoff);
+        title(num2str(opt.cutoff));
     end
 end
