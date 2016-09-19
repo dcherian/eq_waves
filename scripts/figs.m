@@ -97,7 +97,7 @@ for ii=1:length(winds)
     PlotSpectrum(smooth_1d(ts, hi, 'power', window) ...
                  - smooth_1d(ts, lo, 'power', window));
     title([window ' | [' num2str(hi, '%.2f') ' ' num2str(lo, '%.2f') ']']);
-    linex(0.15);
+    linex([0.08 0.1 0.15 0.2]);
 
     grid on
 end
