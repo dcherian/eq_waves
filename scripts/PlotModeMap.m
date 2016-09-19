@@ -10,8 +10,8 @@ function [] = PlotModeMap(name)
   hash = githash([mfilename('fullpath') '.m']);
   insertAnnotation([name ': ' hash]);
 
-  xlimits = [-0.2 1.2];
-  ylimits = [0 500];
+  xlimits = [-1 1.2];
+  ylimits = [0 600];
   fontSize = [20 24 28];
 
   nlon = length(modes.lon);
@@ -79,7 +79,7 @@ function [] = PlotModeMap(name)
   hax(46).XLabel.Color = hax(45).XLabel.Color;
 
   figure(hfig)
-  [ax,h] = suplabel([name ' (' num2str(opt.filt.cutoff) ') | ' ...
+  [ax,h] = suplabel([name ' (' num2str(opt.filt.cutoff, '%.1f') ') | ' ...
                      opt.filt.window ' | ' ...
                      'Red = Theory, Blue = Inferred, ' ...
                      'Black = std(temp)'],'t');
