@@ -27,7 +27,7 @@ function [] = InferModeShape(opt)
   % modes.lon = [95 110 125 140 137 147 155 156 165 170 180]; % W
   % edited lon values to make neater subplots ...
   % (some lons dont have enough data)
-  modes.lon = fliplr([95 110 125 140 155 170 180]);
+  modes.lon = fliplr([95 110 125 140 155 170 180 -165 -156 -147 -137]);
 
   nlon = length(modes.lon);
   nlat = length(modes.lat);
@@ -39,7 +39,11 @@ function [] = InferModeShape(opt)
           %% Step 1. Calculate theoretical modes
 
           % Locate (modes.lon,lat)
-          ilon = find_approx(woa.X,360-modes.lon(mm),1);
+          if modes.lon(mm) > 0
+              ilon = find_approx(woa.X,360-modes.lon(mm),1);
+          else
+              ilon = find_approx(woa.X, modes.lon(mm)*-1, 1);
+          end
           ilat = find_approx(woa.Y,modes.lat(nn),1);
 
           % Verify location
@@ -50,6 +54,10 @@ function [] = InferModeShape(opt)
           Zmode = avg1(woa.Z); % Z from woa05.mat
           T = woa.temp(:,ilat,ilon);
           S = woa.sal(:,ilat,ilon);
+          if all(isnan(T)) | all(isnan(S))
+              warning('no climatological data!');
+              continue;
+          end
           dtdz = diff(T)./diff(woa.Z);
           %P = sw_pres(modes.depth,modes.lat);
 
@@ -69,10 +77,16 @@ function [] = InferModeShape(opt)
               latstr = 'n';
           end
 
+          if modes.lon(mm) < 0
+              lonstr = 'e';
+          else
+              lonstr = 'w';
+          end
+
           fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))), ...
-                    latstr,num2str(modes.lon(mm)),'w_dy.cdf'];
+                    latstr,num2str(abs(modes.lon(mm))),lonstr,'_dy.cdf'];
           fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))), ...
-                    latstr,num2str(modes.lon(mm)),'w_dy.cdf'];
+                    latstr,num2str(abs(modes.lon(mm))),lonstr,'_dy.cdf'];
 
           % Read & interpolate temp
           if ~exist(fnamet,'file'), continue; end
