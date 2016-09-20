@@ -6,13 +6,17 @@ function [] = PlotModeMap(name)
   load([name '.mat']);
 
   hfig = figure; clf;
-  set(hfig,'Position',[0 0 1600 900]);
+  hfig.Position = [0 0 1600 900];
+  hfig.Renderer = 'painters';
+
   hash = githash([mfilename('fullpath') '.m']);
   insertAnnotation([name ': ' hash]);
 
-  xlimits = [-1 1.2];
-  ylimits = [0 600];
+  xlimits = [-0.2 1];
+  ylimits = sort([0 600]*-1);
   fontSize = [20 24 28];
+  linewidth = 1;
+  labelcolor = [1 1 1]*0.3;
 
   nlon = length(modes.lon);
   nlat = length(modes.lat);
@@ -27,29 +31,38 @@ function [] = PlotModeMap(name)
           % to maximize tension, subplot counts along row first
           % while sub2ind does column first. So use sub2ind on
           % on transposed size matrix.
-          subplot_index = sub2ind([nlon nlat],mm,nn)
+          subplot_index = sub2ind([nlon nlat],mm,nn);
 
-          axes(hax(subplot_index));
+          ax = hax(subplot_index);
+          axes(ax);
+          ax.Color = 'none';
           hold on
 
           if mod(subplot_index,nlon) == 1
               ylabel([num2str(modes.lat(nn))  'N']);
+              ax.YLabel.Units = 'normalized';
+              ax.YLabel.Position(1) = -0.8;
           else
               set(gca,'YTickLabel',[]);
           end
+
           if (subplot_index >= nlon*nlat - nlon+1)
+              if mm ~= ceil(nlon/2)
+                  ax.XAxis.Color = [1 1 1];
+                  ax.XLabel.Color = labelcolor;
+              end
               xlabel([num2str(modes.lon(mm)) 'W']);
           else
               set(gca,'XTickLabel',[]);
+              ax.XAxis.Color = [1 1 1];
           end
 
           if isempty(modes.InferredMode{mm,nn})
-              hax(subplot_index).YAxis.Color = [1 1 1];
-              hax(subplot_index).XAxis.Color = [1 1 1];
+              ax.YAxis.Color = [1 1 1];
+              ax.YLabel.Color = labelcolor;
 
-              hax(subplot_index).XLabel.Color = hax(1).XLabel.Color;
-              hax(subplot_index).YLabel.Color = hax(1).YLabel.Color;
-
+              ax.XAxis.Color = [1 1 1];
+              ax.XLabel.Color = labelcolor;
               continue;
           end
 
@@ -58,44 +71,90 @@ function [] = PlotModeMap(name)
 
           % temp std
           hstd = plot(data.Tstd{mm,nn}./max(data.Tstd{mm,nn}), ...
-                      data.depth{mm,nn},'k');
+                      data.depth{mm,nn} * -1,'k', 'LineWidth', linewidth);
 
           % 0 mean flow mode
           hideal = plot(squeeze(abs(modes.IdealTempMode(mm,nn,:))) ...
-                        ./ max(abs( ...
-                            modes.IdealTempMode(mm,nn,1:ind500))), ...
-                        modes.zTmode);
+                        ./ max(abs(modes.IdealTempMode(mm,nn,1:ind500))), ...
+                        modes.zTmode * -1, 'LineWidth', linewidth);
 
           % inferred mode from TAO data
           hinfer = plot(modes.InferredMode{mm,nn}, ...
-                        modes.depth{mm,nn}, 'o-');
+                        modes.depth{mm,nn} * -1, 'o-', 'LineWidth', linewidth);
 
-          linex(0);
+          plot([0 0], ylimits, '--', 'Color', [1 1 1]*0.6, ...
+               'LineWidth', 1);
           xlim(xlimits); ylim(ylimits);
-          set(gca,'YTick',[0 200 400]);
-          revz;
+
+          ax.YTick = ylimits(1):200:0;
+          ax.YTickLabels{1} = '';
+          ax.XTick = [0 1];
+
+          if subplot_index == 1
+              hleg = legend([hinfer hideal hstd], ...
+                            'T_{TAO/TRITON}', 'T_{ideal}', 'T_{std}', ...
+                            'Location', 'NorthWest');
+              hleg.Box = 'off';
+              hleg.Position(1) = hax(1).Position(1);
+              hleg.Position(2) = 0.15;
+          end
 
           beautify(fontSize);
-          set(gca,'TickLength',[0.03 0.03]);
-          box off
-
-          % set line width and ensure that beautify doesn't override
-          linkprop([hstd hideal hinfer], 'LineWidth');
-          hstd.LineWidth = 1;
-          linkprop([hstd hideal hinfer], 'Tag');
-          hstd.Tag = 'dcline';
       end
   end
 
-  figure(hfig)
-  [ax,h] = suplabel([name ' (' num2str(opt.filt.cutoff, '%.1f') ') | ' ...
-                     opt.filt.window ' | ' ...
-                     'Red = Theory, Blue = Inferred, ' ...
-                     'Black = std(temp)'],'t');
-  ax.YLabel.String = 'Z (m)';
-  set(h,'FontSize',fontSize(3));
+  linkaxes(hax, 'xy');
 
-  linkaxes(ax, 'xy');
+  hax(nlon*(nlat-1)+ceil(nlon/2)).XAxis.Axle.VertexData(1) = 0;
+
+  figure(hfig)
+  [ax,~] = suplabel([name ' | ' ...
+                     opt.filt.window ' [' num2str(sort(opt.filt.cutoff), ...
+                                                  '%.1f ') ']'], 't');
+  ax.YLabel.String = 'Z (m)';
+  ax.YLabel.Visible = 'on';
+  ax.YLabel.Position(1) = -0.05;
+  ax.Title.FontSize = fontSize(3);
 
   %export_fig('-nocrop','-r150','../images/' name '.png');
+end
+
+function [] = beautify(fontSizes)
+
+    font_name = 'Fira Sans';
+    font_name_axis = font_name;
+
+    % Get required handles for current figure
+    hAxis = evalin('caller','gca');
+
+    % Get some more handles
+    hXLabel = hAxis.XLabel;
+    hYLabel = hAxis.YLabel;
+    hTitle  = hAxis.Title;
+
+    set(hAxis, ...
+        'Color', 'none', ...
+        'FontName'    , font_name_axis, ...
+        'Box'         , 'off'     , ...
+        'TickDir'     , 'out'     , ...
+        'TickLength'  , [1 1] * .06, ... % IMPROVE THIS
+        'FontWeight'  , 'normal', ...
+        ...%'XMinorTick'  , 'on'      , ...
+        ...%'YMinorTick'  , 'on'      , ...
+        ...%'ZMinorTick'  , 'on'      , ...
+        'XGrid'       , 'off'      , ...
+        'YGrid'       , 'off'      , ...
+        'ZGrid'       , 'off'      , ...
+        'FontSize'    , fontSizes(1), ...
+        'LineWidth'   , 1        );
+
+    set([hXLabel, hYLabel]  , ...
+        'FontName'   , font_name, ...
+        'FontWeight' , 'normal', ...
+        'FontSize'   , fontSizes(2)         );
+
+    set(hTitle, ...
+        'FontSize'   , fontSizes(3) , ...
+        'FontWeight' , 'normal', ...
+        'FontName'   , font_name);
 end
