@@ -12,8 +12,6 @@ function [out] = FilterSeries(in, opt)
         opt.halfdef = 'power';
     end
 
-    in = in - nanmean(in);
-
     nans = isnan(in);
     edges = diff(nans);
     gapstart = find(edges == 1) + 1;
@@ -40,7 +38,9 @@ function [out] = FilterSeries(in, opt)
 
         if isempty(range) | (length(range) < opt.N), continue; end
 
-        out(range) = smooth_1d(in(range), opt.N, ...
+        % remove mean for each section. This makes the filtering work better
+        % and analysis less sensitive to choice of window.
+        out(range) = smooth_1d(in(range) - nanmean(in(range)), opt.N, ...
                                opt.halfdef, opt.window);
 
         % NaN out contaminated edges
