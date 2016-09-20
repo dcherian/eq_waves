@@ -17,16 +17,44 @@ function [] = PlotModeMap(name)
   nlon = length(modes.lon);
   nlat = length(modes.lat);
 
-  hax = packfig(nlon,nlat);
+  % nlat rows x nlon columns
+  hax = packfig(nlat,nlon);
 
   for mm=1:nlon
       for nn=1:nlat
           ind500 = find_approx(modes.zTmode,500,1);
-          if isempty(modes.InferredMode{mm,nn}), continue; end
-          subplot_index = sub2ind([nlon nlat],mm,nn);
+
+          % to maximize tension, subplot counts along row first
+          % while sub2ind does column first. So use sub2ind on
+          % on transposed size matrix.
+          subplot_index = sub2ind([nlon nlat],mm,nn)
 
           axes(hax(subplot_index));
           hold on
+
+          if mod(subplot_index,nlon) == 1
+              ylabel([num2str(modes.lat(nn))  'N']);
+          else
+              set(gca,'YTickLabel',[]);
+          end
+          if (subplot_index >= nlon*nlat - nlon+1)
+              xlabel([num2str(modes.lon(mm)) 'W']);
+          else
+              set(gca,'XTickLabel',[]);
+          end
+
+          if isempty(modes.InferredMode{mm,nn})
+              hax(subplot_index).YAxis.Color = [1 1 1];
+              hax(subplot_index).XAxis.Color = [1 1 1];
+
+              hax(subplot_index).XLabel.Color = hax(1).XLabel.Color;
+              hax(subplot_index).YLabel.Color = hax(1).YLabel.Color;
+
+              continue;
+          end
+
+          % for debugging subplot placement
+          % text(0.5,0.5, num2str([mm nn]), 'Units', 'normalized');
 
           % temp std
           hstd = plot(data.Tstd{mm,nn}./max(data.Tstd{mm,nn}), ...
@@ -47,16 +75,6 @@ function [] = PlotModeMap(name)
           set(gca,'YTick',[0 200 400]);
           revz;
 
-          if mod(subplot_index,nlon) == 1
-              ylabel([num2str(modes.lat(nn))  'N']);
-          else
-              set(gca,'YTickLabel',[]);
-          end
-          if (subplot_index >= nlon*nlat - nlon+1)
-              xlabel([num2str(modes.lon(mm)) 'W']);
-          else
-              set(gca,'XTickLabel',[]);
-          end
           beautify(fontSize);
           set(gca,'TickLength',[0.03 0.03]);
           box off
@@ -68,15 +86,6 @@ function [] = PlotModeMap(name)
           hstd.Tag = 'dcline';
       end
   end
-
-  % remove locations without data
-  hax(4).delete;
-
-  hax(46).YAxis.Visible = 'off';
-  hax(46).XLabel.String = '140W';
-  axes(hax(46)); beautify(fontSize);
-  hax(46).XAxis.Color = [1 1 1];
-  hax(46).XLabel.Color = hax(45).XLabel.Color;
 
   figure(hfig)
   [ax,h] = suplabel([name ' (' num2str(opt.filt.cutoff, '%.1f') ') | ' ...
