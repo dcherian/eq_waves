@@ -12,6 +12,8 @@ function [out] = FilterSeries(in, opt)
         opt.halfdef = 'power';
     end
 
+    in = in - nanmean(in);
+
     nans = isnan(in);
     edges = diff(nans);
     gapstart = find(edges == 1) + 1;
