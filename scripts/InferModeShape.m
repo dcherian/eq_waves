@@ -18,16 +18,22 @@ function [] = InferModeShape(opt)
 
   datadir = '../data/';
 
-  if exist('temp','var') ~= 1 && exist('sal','var') ~=1
-      fprintf('\n Loading WOA 05 data \n\n');
-      woa = load([datadir 'woa05.mat']);
-  end
+
+  fprintf('\n Loading WOA 13 data \n\n');
+  woa.X = double(ncread([datadir '/woa13_decav_s00_01v2.nc'], 'lon'));
+  woa.Y = double(ncread([datadir '/woa13_decav_s00_01v2.nc'], 'lat'));
+  woa.Z = double(ncread([datadir '/woa13_decav_s00_01v2.nc'], 'depth'));
+  woa.temp = permute(double(ncread([datadir '/woa13_decav_t00_01v2.nc'], ...
+                                   't_an')), [3 2 1]);
+  woa.sal = permute(double(ncread([datadir '/woa13_decav_s00_01v2.nc'], ...
+                                  's_an')), [3 2 1]);
 
   modes.lat = [8 5 2 0 -2 -5 -8]; % N
   % modes.lon = [95 110 125 140 137 147 155 156 165 170 180]; % W
   % edited lon values to make neater subplots ...
   % (some lons dont have enough data)
-  modes.lon = fliplr([95 110 125 140 155 170 180 -165 -156 -147 -137]);
+  % values in +ve East.
+  modes.lon = -1 * fliplr([95 110 125 140 155 170 180 -165 -156 -147 -137]);
 
   nlon = length(modes.lon);
   nlat = length(modes.lat);
@@ -36,32 +42,41 @@ function [] = InferModeShape(opt)
   clear data
   for mm=1:nlon
       for nn=1:nlat
+
+          if modes.lon(mm) > 0
+              lonstr = 'e';
+          else
+              lonstr = 'w';
+          end
+
+          if modes.lat(nn) < 0
+              latstr = 's';
+          else
+              latstr = 'n';
+          end
+
           %% Step 1. Calculate theoretical modes
 
           % Locate (modes.lon,lat)
-          if modes.lon(mm) > 0
-              ilon = find_approx(woa.X,360-modes.lon(mm),1);
-          else
-              ilon = find_approx(woa.X, modes.lon(mm)*-1, 1);
-          end
-          ilat = find_approx(woa.Y,modes.lat(nn),1);
+          ilat = find_approx(woa.Y, modes.lat(nn), 1);
+          ilon = find_approx(woa.X, modes.lon(mm), 1);
 
-          % Verify location
-          fprintf('\n Actual location = (%.1f W,%.1f N) \n', ...
-                  360-woa.X(ilon), woa.Y(ilat));
+          fprintf('\n Actual location = (%.1f %s, %.1f %s) \n', ...
+                  abs(woa.X(ilon)), upper(lonstr), ...
+                  abs(woa.Y(ilat)), upper(latstr));
 
-          % Interpolate to denser grid.
-          Zmode = avg1(woa.Z); % Z from woa05.mat
-          T = woa.temp(:,ilat,ilon);
-          S = woa.sal(:,ilat,ilon);
+          Zmode = avg1(woa.Z);
+          T = woa.temp(:,ilat,ilon); %squeeze(woa.temp(ilon, ilat, :));
+          S = woa.sal(:,ilat,ilon); %squeeze(woa.sal(ilon, ilat, :));
           if all(isnan(T)) | all(isnan(S))
               warning('no climatological data!');
               continue;
           end
           dtdz = diff(T)./diff(woa.Z);
-          %P = sw_pres(modes.depth,modes.lat);
 
           N2 = bfrq(S,T,woa.Z,modes.lat(nn));%10^(-6)*ones(32,1);
+          N2(N2 < 0) = min(abs(N2(:)));
+
           [Vmode, Hmode, c] = vertmode(N2,woa.Z,opt.n_modes,0);
           % calculate temperature mode shape
           Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
@@ -71,18 +86,6 @@ function [] = InferModeShape(opt)
           % clear tbuoy depth dht Tfilt Tfilt1 dhtfilt
 
           % read in TAO measurements
-          if modes.lat(nn) < 0
-              latstr = 's';
-          else
-              latstr = 'n';
-          end
-
-          if modes.lon(mm) < 0
-              lonstr = 'e';
-          else
-              lonstr = 'w';
-          end
-
           fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))), ...
                     latstr,num2str(abs(modes.lon(mm))),lonstr,'_dy.cdf'];
           fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))), ...
