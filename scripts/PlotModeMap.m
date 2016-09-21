@@ -1,16 +1,16 @@
 % makes huge plot with a subplot for each point on the TAO array and plots
 % theoretical and inferred mode
 
-function [] = PlotModeMap(name)
+function [] = PlotModeMap(plotopt)
 
-  load([name '.mat']);
+  load([plotopt.name '.mat']);
 
   hfig = figure; clf;
   hfig.Position = [0 0 1600 900];
   hfig.Renderer = 'painters';
 
   hash = githash([mfilename('fullpath') '.m']);
-  insertAnnotation([name ': ' hash]);
+  insertAnnotation([plotopt.name ': ' hash]);
 
   xlimits = [-0.2 1];
   ylimits = sort([0 600]*-1);
@@ -74,21 +74,29 @@ function [] = PlotModeMap(name)
           % for debugging subplot placement
           % text(0.5,0.5, num2str([mm nn]), 'Units', 'normalized');
 
-          % temp std
-          hstd = plot(data.Tstd{mm,nn}./max(data.Tstd{mm,nn}), ...
-                      data.depth{mm,nn} * -1,'k', 'LineWidth', linewidth);
+          % inferred mode from TAO data
+          plot(modes.InferredMode{mm,nn}, ...
+               modes.depth{mm,nn} * -1, '.', ...
+               'MarkerSize', 18, ...
+               'LineWidth', linewidth, 'DisplayName', 'T_{TAO/TRITON}');
 
           % 0 mean flow mode
-          hideal = plot(squeeze(abs(modes.IdealTempMode(mm,nn,:))) ...
-                        ./ max(abs(modes.IdealTempMode(mm,nn,1:ind500))), ...
-                        modes.zTmode * -1, 'LineWidth', linewidth);
+          for ii=plotopt.nmode
+              plot(squeeze(abs(modes.IdealTempMode(mm,nn,:,ii))) ...
+                   ./ max(abs(modes.IdealTempMode(mm,nn,1:ind500,ii))), ...
+                   modes.zTmode * -1, 'LineWidth', linewidth, ...
+                   'DisplayName', ['T_{bc' num2str(ii) '}']);
+          end
 
-          % inferred mode from TAO data
-          hinfer = plot(modes.InferredMode{mm,nn}, ...
-                        modes.depth{mm,nn} * -1, 'o-', 'LineWidth', linewidth);
+          % temp std
+          if plotopt.plotstd
+              plot(data.Tstd{mm,nn}./max(data.Tstd{mm,nn}), ...
+                   data.depth{mm,nn} * -1,'k', 'LineWidth', linewidth, ...
+                   'DisplayName', 'T_{std}');
+          end
 
           plot([0 0], ylimits, '--', 'Color', [1 1 1]*0.6, ...
-               'LineWidth', 1);
+               'LineWidth', 1, 'LegendDisplay', 'off');
           xlim(xlimits); ylim(ylimits);
 
           ax.YTick = ylimits(1):200:0;
@@ -96,9 +104,7 @@ function [] = PlotModeMap(name)
           ax.XTick = [0 1];
 
           if subplot_index == 1
-              hleg = legend([hinfer hideal hstd], ...
-                            'T_{TAO/TRITON}', 'T_{ideal}', 'T_{std}', ...
-                            'Location', 'NorthWest');
+              hleg = legend('Location', 'NorthWest');
               hleg.Box = 'off';
               hleg.Position(1) = hax(1).Position(1);
               hleg.Position(2) = 0.15;
@@ -113,7 +119,7 @@ function [] = PlotModeMap(name)
   hax(nlon*(nlat-1)+ceil(nlon/2)).XAxis.Axle.VertexData(1) = 0;
 
   figure(hfig)
-  [ax,~] = suplabel([name ' | ' ...
+  [ax,~] = suplabel([opt.name ' | ' ...
                      opt.filt.window ' [' num2str(sort(opt.filt.cutoff), ...
                                                   '%.1f ') ']'], 't');
   ax.YLabel.String = 'Z (m)';
@@ -121,7 +127,7 @@ function [] = PlotModeMap(name)
   ax.YLabel.Position(1) = -0.05;
   ax.Title.FontSize = fontSize(3);
 
-  %export_fig('-nocrop','-r150','../images/' name '.png');
+  %export_fig('-nocrop','-r150','../images/' opt.name '.png');
 end
 
 function [] = beautify(fontSizes)
