@@ -1,3 +1,38 @@
+%% typical mode shapes
+
+woa = load('../data/woa05.mat');
+
+lon = 180; lat = 2;
+ilon = find_approx(woa.X, lon, 1);
+ilat = find_approx(woa.Y, lat, 1);
+
+Zmode = avg1(woa.Z); % Z from woa05.mat
+T = woa.temp(:,ilat,ilon);
+S = woa.sal(:,ilat,ilon);
+if all(isnan(T)) | all(isnan(S))
+    error('no climatological data!');
+end
+dtdz = diff(T)./diff(woa.Z);
+
+N2 = bfrq(S,T,woa.Z, lat);%10^(-6)*ones(32,1);
+[Vmode, Hmode, c] = vertmode(N2,woa.Z,3,0);
+% calculate temperature mode shape
+Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
+
+figure;
+clf;
+plot(bsxfun(@rdivide, Tmode, [-1 1 -1] .* max(abs(Tmode))), -1*Zmode);
+linex(0);
+ylim([-2000 0]);
+ylabel('Z (m)');
+title(['Baroclinic mode shapes at (' num2str(lon) 'E, ' ...
+       num2str(lat) 'N)']);
+legend('1', '2', '3', 'Location', 'SouthEast');
+beautify;
+set(gcf, 'Position', [675 223 749 872]);
+
+export_fig images/baroclinic-mode-shapes.png
+
 %% test band pass filtering
 
 fnameh = ['../data/dynht/dyn5n180w_dy.cdf'];
