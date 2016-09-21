@@ -18,7 +18,13 @@ function [out] = FilterSeries(in, opt)
     gapend = find(edges == -1);
 
     if isnan(in(1)), gapstart = [1 gapstart]; end
-    if isnan(in(end)), gapend(end+1) = length(in); end
+    if isnan(in(end))
+        gapend(end+1) = length(in);
+    else
+        % last gap is not at the end of time series.
+        gapstart(end+1) = length(in);
+        gapend(end+1) = length(in);
+    end
 
     if isempty(gapstart) & isempty(gapend) ...
             & isequal(nans, zeros(size(nans)))
