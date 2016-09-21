@@ -77,7 +77,7 @@ function [] = InferModeShape(opt)
           N2 = bfrq(S,T,woa.Z,modes.lat(nn));%10^(-6)*ones(32,1);
           N2(N2 < 0) = min(abs(N2(:)));
 
-          [Vmode, Hmode, c] = vertmode(N2,woa.Z,opt.n_modes,0);
+          [Vmode, Hmode, c] = vertmode(N2,woa.Z,3,0);
           % calculate temperature mode shape
           Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
 
@@ -177,7 +177,7 @@ function [] = InferModeShape(opt)
               %Imode = fill_gap(dhtfilt(range)','linear',15)\fill_gap(Tfilt(:,range)','linear',15);
 
               modes.InferredMode{mm,nn} = infer_mode./nanmax(abs(infer_mode));
-              modes.IdealTempMode(mm,nn,:) = Tmode(:,opt.n_mode);
+              modes.IdealTempMode(mm,nn,:,:) = Tmode;
               data.Tstd{mm,nn} = Tstd;
           end
       end

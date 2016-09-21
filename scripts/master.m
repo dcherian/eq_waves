@@ -5,7 +5,6 @@ clear opt
 % main options
 opt.debug = 0; % debugging spectrum plots
 opt.filter_temp = 1; % filter temperature also?
-opt.n_modes = 3; % number of modes to calculate
 
 opt.filt.window = 'gauss'; % window shape
 opt.filt.halfdef = 'power'; % how is filt.N defined?
