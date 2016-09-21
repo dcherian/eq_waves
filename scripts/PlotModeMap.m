@@ -51,7 +51,12 @@ function [] = PlotModeMap(name)
                   ax.XAxis.Color = [1 1 1];
                   ax.XLabel.Color = labelcolor;
               end
-              xlabel([num2str(modes.lon(mm)) 'W']);
+              if modes.lon(mm) < 0
+                  lonstr = 'E';
+              else
+                  lonstr = 'W';
+              end
+              xlabel([num2str(abs(modes.lon(mm))) lonstr]);
           else
               set(gca,'XTickLabel',[]);
               ax.XAxis.Color = [1 1 1];
