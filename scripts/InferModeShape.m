@@ -81,6 +81,11 @@ function [] = InferModeShape(opt)
           % calculate temperature mode shape
           Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
 
+          % make sure maximum is always positive.
+          sgn = -1 * ~(max(Tmode) == max(abs(Tmode)));
+          sgn(sgn == 0) = 1;
+          Tmode = Tmode .* sgn;
+
           %% Filter out TAO data
 
           % clear tbuoy depth dht Tfilt Tfilt1 dhtfilt
