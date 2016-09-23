@@ -23,12 +23,12 @@ plotopt.plotcorr = 0;
 plotopt.plotstd = 0;
 PlotModeMap(plotopt);
 
-export_fig -r300 images/09-21-bc2m1.png
+export_fig -r300 images/09-23-bc2m1.png
 
 %% bc2m2
 
 opt.name = 'bc2m2';
-opt.filt.cutoff = 2./[0.19 0.21]; % (days) band pass filter windows
+opt.filt.cutoff = 2./[0.19 0.23]; % (days) band pass filter windows
 InferModeShape(opt);
 
 plotopt.name = opt.name;
@@ -37,4 +37,4 @@ plotopt.plotcorr = 0;
 plotopt.plotstd = 0;
 PlotModeMap(plotopt);
 
-export_fig -r300 images/09-21-bc2m2.png
+export_fig -r300 images/09-23-bc2m2.png
