@@ -12,8 +12,8 @@ function [] = PlotModeMap(plotopt)
   hash = githash([mfilename('fullpath') '.m']);
   insertAnnotation([plotopt.name ': ' hash]);
 
-  xlimits = [-0.2 1];
-  ylimits = sort([0 600]*-1);
+  xlimits = [-0.2 1.2];
+  ylimits = [-750 0];
   fontSize = [20 24 28];
   linewidth = 1;
   labelcolor = [1 1 1]*0.3;
@@ -74,11 +74,17 @@ function [] = PlotModeMap(plotopt)
           % for debugging subplot placement
           % text(0.5,0.5, num2str([mm nn]), 'Units', 'normalized');
 
+          mode = modes.InferredMode{mm,nn};
+          err = modes.InferredModeError{mm,nn};
+          % if indistinguishable from 0, NaN out.
+          mode( (mode-err).*(mode+err) < 0) = NaN;
+
           % inferred mode from TAO data
-          plot(modes.InferredMode{mm,nn}, ...
-               modes.depth{mm,nn} * -1, '.', ...
-               'MarkerSize', 18, ...
-               'LineWidth', linewidth, 'DisplayName', 'T_{TAO/TRITON}');
+          herr = errorbar(mode, modes.depth{mm,nn} * -1, ...
+                          err, 'horizontal', ...
+                          'Marker', '.', 'MarkerSize', 12, ...
+                          'LineStyle', 'none', 'LineWidth', linewidth, ...
+                          'DisplayName', 'T_{TAO/TRITON}');
 
           % 0 mean flow mode
           for ii=plotopt.nmode

@@ -137,6 +137,7 @@ function [] = InferModeShape(opt)
 
           % nans
           infer_mode = nan(size(modes.depth{mm,nn}));
+          infer_mode_error = nan(size(modes.depth{mm,nn}));
           Tstd = infer_mode;
 
           % iterate over depths and regress at each
@@ -163,12 +164,17 @@ function [] = InferModeShape(opt)
               Treduced = Tfilt(ii, range);
               mask = ~(isnan(dhtfilt) | isnan(Treduced));
 
+              if all(mask == 0)
+                  infer_mode(ii) = NaN;
+                  infer_mode_error(ii,1) = NaN;
+                  continue;
+              end
+
               % regress to find mode shape
               infer_mode(ii) = dhtfilt(mask)' \ Treduced(mask)';
-
-              if sum(mask) < 2000
-                  infer_mode(ii) = NaN;
-              end
+              [infer_mode(ii), bint] = ...
+                  regress(Treduced(mask)', dhtfilt(mask)');
+              infer_mode_error(ii,1) = bint(2) - infer_mode(ii);
 
               if opt.debug
                   figure(hdbg);
@@ -178,13 +184,13 @@ function [] = InferModeShape(opt)
                   title('filtered time series for regression');
                   keyboard;
               end
-
               %Imode = fill_gap(dhtfilt(range)','linear',15)\fill_gap(Tfilt(:,range)','linear',15);
-
-              modes.InferredMode{mm,nn} = infer_mode./nanmax(abs(infer_mode));
-              modes.IdealTempMode(mm,nn,:,:) = Tmode;
-              data.Tstd{mm,nn} = Tstd;
           end
+          modes.InferredMode{mm,nn} = infer_mode./nanmax(abs(infer_mode));
+          modes.InferredModeError{mm,nn} = infer_mode_error./nanmax(abs(infer_mode));
+          modes.IdealTempMode(mm,nn,:,:) = Tmode;
+          data.Tstd{mm,nn} = Tstd;
+
       end
   end
 
