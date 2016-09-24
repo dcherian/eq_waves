@@ -55,6 +55,16 @@ function [] = InferModeShape(opt)
               latstr = 'n';
           end
 
+          % TAO filenames
+          fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))), ...
+                    latstr,num2str(abs(modes.lon(mm))),lonstr,'_dy.cdf'];
+          fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))), ...
+                    latstr,num2str(abs(modes.lon(mm))),lonstr,'_dy.cdf'];
+
+          % make sure observations exist before continuing
+          if ~exist(fnamet,'file'), continue; end
+          if ~exist(fnameh,'file'), continue; end
+
           %% Step 1. Calculate theoretical modes
 
           % Locate (modes.lon,lat)
@@ -100,26 +110,10 @@ function [] = InferModeShape(opt)
 
           %% Filter out TAO data
 
-          % clear tbuoy depth dht Tfilt Tfilt1 dhtfilt
-
           % read in TAO measurements
-          fnamet = [datadir 'temp/t',   num2str(abs(modes.lat(nn))), ...
-                    latstr,num2str(abs(modes.lon(mm))),lonstr,'_dy.cdf'];
-          fnameh = [datadir 'dynht/dyn',num2str(abs(modes.lat(nn))), ...
-                    latstr,num2str(abs(modes.lon(mm))),lonstr,'_dy.cdf'];
-
-          % Read & interpolate temp
-          if ~exist(fnamet,'file'), continue; end
           tao.T = double(addnan(squeeze(ncread(fnamet,'T_20')),100));
           modes.depth{mm,nn} = squeeze(ncread(fnamet,'depth'));
           data.depth{mm,nn}  = modes.depth{mm,nn};
-
-          % interpolate buoy profiles onto standard depth
-          % why do this?
-          % tao.T = interp1(depth,tao.T,modes.depth);
-
-          % Read dynamic ht
-          if ~exist(fnameh,'file'), continue; end
           tao.dht = ...
               double(addnan(squeeze(ncread(fnameh,'DYN_13')),1000))';
           tao.dht = tao.dht - nanmean(tao.dht);
