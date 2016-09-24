@@ -16,8 +16,8 @@ function [] = InferModeShape(opt)
 
   %% Data & Parameters
 
+  ticstart = tic;
   datadir = '../data/';
-
 
   fprintf('\n Loading WOA 13 data \n\n');
   woa.X = double(ncread([datadir '/woa13_decav_s00_01v2.nc'], 'lon'));
@@ -61,7 +61,10 @@ function [] = InferModeShape(opt)
           ilat = find_approx(woa.Y, modes.lat(nn), 1);
           ilon = find_approx(woa.X, modes.lon(mm), 1);
 
-          fprintf('\n Actual location = (%.1f %s, %.1f %s) \n', ...
+          fprintf(['TAO at (%.1f, %s, %.1f %s) | ' ...
+                   'WOA at (%.1f %s, %.1f %s)\n'], ...
+                  abs(modes.lon(mm)), upper(lonstr), ...
+                  abs(modes.lat(nn)), upper(latstr), ...
                   abs(woa.X(ilon)), upper(lonstr), ...
                   abs(woa.Y(ilat)), upper(latstr));
 
@@ -211,4 +214,5 @@ function [] = InferModeShape(opt)
                    ' temperature mode on grid modes.zTmode'];
 
   save([opt.name '.mat'], 'modes', 'data', 'opt', 'hash');
+  toc(ticstart);
 end
