@@ -68,13 +68,22 @@ function [] = InferModeShape(opt)
                   abs(woa.X(ilon)), upper(lonstr), ...
                   abs(woa.Y(ilat)), upper(latstr));
 
-          Zmode = avg1(woa.Z);
-          T = woa.temp(:,ilat,ilon); %squeeze(woa.temp(ilon, ilat, :));
-          S = woa.sal(:,ilat,ilon); %squeeze(woa.sal(ilon, ilat, :));
-          if all(isnan(T)) | all(isnan(S))
-              warning('no climatological data!');
-              continue;
+          if all(isnan(woa.temp(:,ilat,ilon)))
+              warning('No climatological data! Averaging...');
+              T = nanmean([woa.temp(:,ilat-1,ilon) ...
+                           woa.temp(:,ilat+1,ilon) ...
+                           woa.temp(:,ilat,ilon-1) ...
+                           woa.temp(:,ilat,ilon+1)], 2);
+              S = nanmean([woa.sal(:,ilat-1,ilon) ...
+                           woa.sal(:,ilat+1,ilon) ...
+                           woa.sal(:,ilat,ilon-1) ...
+                           woa.sal(:,ilat,ilon+1)], 2);
+          else
+              T = woa.temp(:,ilat,ilon); %squeeze(woa.temp(ilon, ilat, :));
+              S = woa.sal(:,ilat,ilon); %squeeze(woa.sal(ilon, ilat, :));
           end
+
+          Zmode = avg1(woa.Z);
           dtdz = diff(T)./diff(woa.Z);
 
           N2 = bfrq(S,T,woa.Z,modes.lat(nn));%10^(-6)*ones(32,1);
