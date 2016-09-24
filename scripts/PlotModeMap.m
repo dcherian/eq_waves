@@ -54,7 +54,7 @@ function [] = PlotModeMap(plotopt)
                   ax.XAxis.Color = [1 1 1];
                   ax.XLabel.Color = labelcolor;
               end
-              if modes.lon(mm) < 0
+              if modes.lon(mm) > 0
                   lonstr = 'E';
               else
                   lonstr = 'W';
