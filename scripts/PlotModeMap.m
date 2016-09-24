@@ -5,7 +5,7 @@ function [] = PlotModeMap(plotopt)
 
   load([plotopt.name '.mat']);
 
-  hfig = figure; clf;
+  hfig = figure;
   hfig.Position = [0 0 1600 900];
   hfig.Renderer = 'painters';
 
@@ -34,16 +34,19 @@ function [] = PlotModeMap(plotopt)
           subplot_index = sub2ind([nlon nlat],mm,nn);
 
           ax = hax(subplot_index);
-          axes(ax);
           ax.Color = 'none';
-          hold on
+          ax.FontSize = fontSize(1);
+          ax.Box = 'off';
+          ax.TickDir = 'out';
+          ax.TickLength = [1 1]*0.06;
+          ax.NextPlot = 'add'; % hold on
 
           if mod(subplot_index,nlon) == 1
-              ylabel([num2str(modes.lat(nn))  'N']);
+              ax.YLabel.String = [num2str(modes.lat(nn))  'N'];
               ax.YLabel.Units = 'normalized';
               ax.YLabel.Position(1) = -0.8;
           else
-              set(gca,'YTickLabel',[]);
+              ax.YTickLabel = [];
           end
 
           if (subplot_index >= nlon*nlat - nlon+1)
@@ -56,9 +59,9 @@ function [] = PlotModeMap(plotopt)
               else
                   lonstr = 'W';
               end
-              xlabel([num2str(abs(modes.lon(mm))) lonstr]);
+              ax.XLabel.String = [num2str(abs(modes.lon(mm))) lonstr];
           else
-              set(gca,'XTickLabel',[]);
+              ax.XTickLabel = [];
               ax.XAxis.Color = [1 1 1];
           end
 
@@ -75,17 +78,17 @@ function [] = PlotModeMap(plotopt)
           % text(0.5,0.5, num2str([mm nn]), 'Units', 'normalized');
 
           % inferred mode from TAO data
-          herr = errorbar(modes.InferredMode{mm,nn}, ...
-                          modes.depth{mm,nn} * -1, ...
-                          modes.InferredModeError{mm,nn}, ...
-                          'horizontal', ...
-                          'Marker', '.', 'MarkerSize', 12, ...
-                          'LineStyle', 'none', 'LineWidth', linewidth, ...
-                          'DisplayName', 'T_{TAO/TRITON}');
+          errorbar(ax, modes.InferredMode{mm,nn}, ...
+                   modes.depth{mm,nn} * -1, ...
+                   modes.InferredModeError{mm,nn}, ...
+                   'horizontal', ...
+                   'Marker', '.', 'MarkerSize', 12, ...
+                   'LineStyle', 'none', 'LineWidth', linewidth, ...
+                   'DisplayName', 'T_{TAO/TRITON}');
 
           % 0 mean flow mode
           for ii=plotopt.nmode
-              plot(squeeze(modes.IdealTempMode(mm,nn,:,ii)) ...
+              plot(ax, squeeze(modes.IdealTempMode(mm,nn,:,ii)) ...
                    ./ max(abs(modes.IdealTempMode(mm,nn,1:ind500,ii))), ...
                    modes.zTmode * -1, 'LineWidth', linewidth, ...
                    'DisplayName', ['T_{bc' num2str(ii) '}']);
@@ -93,35 +96,28 @@ function [] = PlotModeMap(plotopt)
 
           % temp std
           if plotopt.plotstd
-              plot(data.Tstd{mm,nn}./max(data.Tstd{mm,nn}), ...
+              plot(ax, data.Tstd{mm,nn}./max(data.Tstd{mm,nn}), ...
                    data.depth{mm,nn} * -1,'k', 'LineWidth', linewidth, ...
                    'DisplayName', 'T_{std}');
           end
 
-          plot([0 0], ylimits, '--', 'Color', [1 1 1]*0.6, ...
+          plot(ax, [0 0], ylimits, '--', 'Color', [1 1 1]*0.6, ...
                'LineWidth', 1, 'LegendDisplay', 'off');
-          xlim(xlimits); ylim(ylimits);
-
+          ax.XLim = xlimits;
+          ax.YLim = ylimits;
           ax.YTick = ylimits(1):200:0;
           ax.YTickLabels{1} = '';
           ax.XTick = [0 1];
 
           if subplot_index == 1
-              hleg = legend('Location', 'NorthWest');
+              hleg = legend(ax, 'Location', 'NorthWest');
               hleg.Box = 'off';
               hleg.Position(1) = hax(1).Position(1);
               hleg.Position(2) = 0.15;
           end
-
-          beautify(fontSize);
       end
   end
 
-  linkaxes(hax, 'xy');
-
-  hax(nlon*(nlat-1)+ceil(nlon/2)).XAxis.Axle.VertexData(1) = 0;
-
-  figure(hfig)
   [ax,~] = suplabel([opt.name ' | ' ...
                      opt.filt.window ' [' num2str(sort(opt.filt.cutoff), ...
                                                   '%.1f ') ']'], 't');
@@ -130,45 +126,8 @@ function [] = PlotModeMap(plotopt)
   ax.YLabel.Position(1) = -0.05;
   ax.Title.FontSize = fontSize(3);
 
+  linkaxes(hax, 'xy');
+  hax(nlon*(nlat-1)+ceil(nlon/2)).XAxis.Axle.VertexData(1) = 0;
+
   %export_fig('-nocrop','-r150','../images/' opt.name '.png');
-end
-
-function [] = beautify(fontSizes)
-
-    font_name = 'Fira Sans';
-    font_name_axis = font_name;
-
-    % Get required handles for current figure
-    hAxis = evalin('caller','gca');
-
-    % Get some more handles
-    hXLabel = hAxis.XLabel;
-    hYLabel = hAxis.YLabel;
-    hTitle  = hAxis.Title;
-
-    set(hAxis, ...
-        'Color', 'none', ...
-        'FontName'    , font_name_axis, ...
-        'Box'         , 'off'     , ...
-        'TickDir'     , 'out'     , ...
-        'TickLength'  , [1 1] * .06, ... % IMPROVE THIS
-        'FontWeight'  , 'normal', ...
-        ...%'XMinorTick'  , 'on'      , ...
-        ...%'YMinorTick'  , 'on'      , ...
-        ...%'ZMinorTick'  , 'on'      , ...
-        'XGrid'       , 'off'      , ...
-        'YGrid'       , 'off'      , ...
-        'ZGrid'       , 'off'      , ...
-        'FontSize'    , fontSizes(1), ...
-        'LineWidth'   , 1        );
-
-    set([hXLabel, hYLabel]  , ...
-        'FontName'   , font_name, ...
-        'FontWeight' , 'normal', ...
-        'FontSize'   , fontSizes(2)         );
-
-    set(hTitle, ...
-        'FontSize'   , fontSizes(3) , ...
-        'FontWeight' , 'normal', ...
-        'FontName'   , font_name);
 end
