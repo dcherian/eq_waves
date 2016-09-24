@@ -141,6 +141,9 @@ function [] = InferModeShape(opt)
           % nans
           infer_mode = nan(size(modes.depth{mm,nn}));
           infer_mode_error = nan(size(modes.depth{mm,nn}));
+
+          dof = infer_mode;
+          corrcoeff = infer_mode;
           Tstd = infer_mode;
 
           % iterate over depths and regress at each
@@ -174,10 +177,18 @@ function [] = InferModeShape(opt)
               end
 
               % regress to find mode shape
-              infer_mode(ii) = dhtfilt(mask)' \ Treduced(mask)';
-              [infer_mode(ii), bint] = ...
-                  regress(Treduced(mask)', dhtfilt(mask)');
-              infer_mode_error(ii,1) = bint(2) - infer_mode(ii);
+              % infer_mode(ii) = dhtfilt(mask)' \ Treduced(mask)';
+              % [infer_mode(ii), bint] = ...
+              %     regress(Treduced(mask)', dhtfilt(mask)');
+              % infer_mode_error(ii,1) = bint(2) - infer_mode(ii);
+
+              [coef, conf, dof(ii)] = ...
+                  dcregress(dhtfilt(mask)', Treduced(mask)');
+
+              infer_mode(ii) = coef(2);
+              infer_mode_error(ii) = conf(2);
+              corrcoeff(ii) = min(min( ...
+                  corrcoef(dhtfilt(mask)', Treduced(mask)')));
 
               if opt.debug
                   figure(hdbg);
@@ -189,9 +200,12 @@ function [] = InferModeShape(opt)
               end
               %Imode = fill_gap(dhtfilt(range)','linear',15)\fill_gap(Tfilt(:,range)','linear',15);
           end
+
           modes.InferredMode{mm,nn} = infer_mode./nanmax(abs(infer_mode));
           modes.InferredModeError{mm,nn} = infer_mode_error./nanmax(abs(infer_mode));
           modes.IdealTempMode(mm,nn,:,:) = Tmode;
+          modes.dof{mm,nn} = dof;
+          modes.corr{mm,nn} = corrcoeff;
           data.Tstd{mm,nn} = Tstd;
 
       end
