@@ -94,7 +94,7 @@ function [] = InferModeShape(opt)
           end
 
           Zmode = avg1(woa.Z);
-          dtdz = diff(T)./diff(woa.Z);
+          dtdz = avg1(gradient(T, woa.Z)); %diff(T)./diff(woa.Z);
 
           N2 = bfrq(S,T,woa.Z,modes.lat(nn));%10^(-6)*ones(32,1);
           N2(N2 < 0) = min(abs(N2(:)));
