@@ -137,3 +137,28 @@ for ii=1:length(winds)
     grid on
 end
 linkaxes(hax, 'xy');
+
+
+%% plot particular mode
+
+
+%% compare all inferred mode structures
+
+load bc2m1.mat
+
+figure; hold on;
+for mm=1:length(modes.lon)
+    for nn=1:length(modes.lat)
+        plot(modes.InferredMode{mm,nn}, -modes.depth{mm,nn}, 'k.');
+    end
+end
+
+set(gcf, 'Position', [516 121 492 674]);
+set(gca, 'XAxisLocation', 'top');
+ylabel('Z (m)');
+xlabel('Mode amplitude');
+xlim([-0.2 1.2]);
+linex(0);
+beautify;
+
+export_fig -r300 images/
