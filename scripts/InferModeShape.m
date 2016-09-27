@@ -210,6 +210,8 @@ function [] = InferModeShape(opt)
           modes.dof{mm,nn} = dof;
           modes.corr{mm,nn} = corrcoeff;
 
+          data.timedht{mm,nn} = tao.timedht;
+          data.dhtfilt{mm,nn} = dhtfilt;
           data.Tstd{mm,nn} = Tstd;
           data.Twoa{mm,nn} = T;
           data.Swoa{mm,nn} = S;
@@ -220,7 +222,6 @@ function [] = InferModeShape(opt)
   modes.zTmode = Zmode;
 
   hash = githash([mfilename('fullpath') '.m']);
-  data.dhtfilt = dhtfilt;
   data.comment = ['Tfilt = bandpassed temperature (cell array) | ' ...
                   'dhtfilt = band passed dynamic height' ...
                   'Tstd = standard dev of temp time series at depth'];
