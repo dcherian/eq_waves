@@ -21,7 +21,7 @@ Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
 
 figure;
 clf;
-plot(bsxfun(@rdivide, Tmode, [-1 1 -1] .* max(abs(Tmode))), -1*Zmode);
+plot(bsxfun(@rdivide, Tmode, -max(abs(Tmode))), -1*Zmode);
 linex(0);
 ylim([-2000 0]);
 ylabel('Z (m)');
@@ -29,7 +29,12 @@ title(['Baroclinic mode shapes at (' num2str(lon) 'E, ' ...
        num2str(lat) 'N)']);
 legend('1', '2', '3', 'Location', 'SouthEast');
 beautify;
-set(gcf, 'Position', [675 223 749 872]);
+set(gcf, 'Position', [675 23 749 872]);
+ax = gca;
+ytick = ax.YTick;
+yticklab = ax.YTickLabels;
+liney([-1 -25 -50 -75 -100 -125 -150 -200 -250 -300 -500 -750]);
+ax.YTick = ytick;
 
 export_fig images/baroclinic-mode-shapes.png
 
