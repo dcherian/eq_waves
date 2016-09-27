@@ -188,3 +188,25 @@ ylim([-800 0]);
 ylabel('Depth (m)'); xlabel('Temp (C)');
 legend('Location', 'SouthEast');
 beautify;
+
+%% TAO/TRITON array seasonal bias?
+
+load bc2m1.mat
+
+time = [];
+for mm=1:size(data.dhtfilt, 1)
+    for nn=1:size(data.dhtfilt, 2)
+        tdht = datetime(data.timedht{mm,nn}, 'ConvertFrom', 'juliandate');
+        dht = data.dhtfilt{mm,nn};
+        time = [time; tdht(~isnan(dht))];
+    end
+end
+
+figure;
+histogram(month(time), 12);
+title(['histogram of valid filtered dynamic height observations vs. ' ...
+       'month'])
+xlabel('Month number');
+xlim([1 12]);
+
+export_fig -r150 images/dynht-month-hist.png
