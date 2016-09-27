@@ -209,8 +209,11 @@ function [] = InferModeShape(opt)
           modes.IdealTempMode(mm,nn,:,:) = Tmode;
           modes.dof{mm,nn} = dof;
           modes.corr{mm,nn} = corrcoeff;
-          data.Tstd{mm,nn} = Tstd;
 
+          data.Tstd{mm,nn} = Tstd;
+          data.Twoa{mm,nn} = T;
+          data.Swoa{mm,nn} = S;
+          data.Zwoa = woa.Z;
       end
   end
 
