@@ -166,4 +166,25 @@ xlim([-0.2 1.2]);
 linex(0);
 beautify;
 
-export_fig -r300 images/
+export_fig -r300 images/all-inferred-modes.png
+
+%% check temperature structures at given moorings
+
+load bc2m1.mat
+
+lonidx = [11 8 11];
+latidx = [4 4 1];
+
+figure; hold on;
+set(gcf, 'Position', [516 121 492 674]);
+set(gca, 'XAxisLocation', 'top');
+
+for ii=1:length(lonidx)
+    label = sprintf('(%dE, %dN)', modes.lon(lonidx(ii)), modes.lat(latidx(ii)));
+    h(ii) = plot(data.Twoa{lonidx(ii), latidx(ii)}, -data.Zwoa, ...
+                 'DisplayName', label);
+end
+ylim([-800 0]);
+ylabel('Depth (m)'); xlabel('Temp (C)');
+legend('Location', 'SouthEast');
+beautify;
