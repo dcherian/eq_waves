@@ -3,7 +3,7 @@
 
 function [] = PlotModeMap(plotopt)
 
-  load([plotopt.name '.mat']);
+  load([plotopt.name '-' plotopt.window '.mat']);
 
   hfig = figure;
   hfig.Position = [0 0 1600 900];
