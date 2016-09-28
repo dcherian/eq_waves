@@ -50,7 +50,7 @@ filt.halfdef = 'power';
 filt.cutoff = sort(2./[0.135 0.155]);
 filt.debugflag = 0;
 
-figure;
+figure; maximize;
 hdht = PlotSpectrum(dht);
 
 filt.window = 'rect';
@@ -64,15 +64,17 @@ hparzen = PlotSpectrum(BandPass(dht, filt));
 
 filt.window = 'butterworth';
 hbutt = PlotSpectrum(BandPass(dht, filt));
+hbutt.Color = 'k';
 
 %linex(1./filt.cutoff);
-legend('raw dyn ht', 'rect filt', 'gauss filt', 'parzen filt', 'butterworth');
+legend('raw dyn ht', 'rect filt', 'gauss filt', 'parzen filt', ...
+       'butterworth', 'Location', 'SouthWest');
 title(['5 band smoothed spectrum of dyn ht at (170W, 8S) | [' ...
        num2str(sort(filt.cutoff), '%.2f ') ']']);
 beautify;
 grid on;
-linex(0.15, 'bc2m1', 'k');
-linex([0.19 0.11 0.085], [], [1 1 1]*0.5);
+linex(0.15, [], 'k');
+linex([0.19 0.11 0.085], [], [1 1 1]*0.6);
 
 export_fig -r300 images/filt-compare-dyn-ht-butter.png
 
