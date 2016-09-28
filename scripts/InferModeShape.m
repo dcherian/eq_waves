@@ -173,6 +173,10 @@ function [] = InferModeShape(opt)
               Treduced = Tfilt(ii, range);
               mask = ~(isnan(dhtfilt) | isnan(Treduced));
 
+              Treduced(~mask) = NaN;
+              dhtfiltreg = dhtfilt; % copy for regression
+              dhtfiltreg(~mask) = NaN;
+
               if all(mask == 0)
                   infer_mode(ii) = NaN;
                   infer_mode_error(ii,1) = NaN;
@@ -185,8 +189,7 @@ function [] = InferModeShape(opt)
               %     regress(Treduced(mask)', dhtfilt(mask)');
               % infer_mode_error(ii,1) = bint(2) - infer_mode(ii);
 
-              [coef, conf, dof(ii)] = ...
-                  dcregress(dhtfilt(mask)', Treduced(mask)');
+              [coef, conf, dof(ii)] = dcregress(dhtfiltreg', Treduced');
 
               infer_mode(ii) = coef(2);
               infer_mode_error(ii) = conf(2);
