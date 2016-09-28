@@ -207,7 +207,7 @@ function [] = InferModeShape(opt)
               %Imode = fill_gap(dhtfilt(range)','linear',15)\fill_gap(Tfilt(:,range)','linear',15);
           end
 
-          modes.InferredMode{mm,nn} = infer_mode./nanmax(abs(infer_mode));
+          modes.InferredMode{mm,nn} = infer_mode./nanmax(infer_mode);
           modes.InferredModeError{mm,nn} = infer_mode_error./nanmax(abs(infer_mode));
           modes.IdealTempMode(mm,nn,:,:) = Tmode;
           modes.dof{mm,nn} = dof;
