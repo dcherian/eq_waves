@@ -40,41 +40,41 @@ export_fig images/baroclinic-mode-shapes.png
 
 %% test band pass filtering
 
-fnameh = ['../data/dynht/dyn5n180w_dy.cdf'];
+fnameh = ['../data/dynht/dyn8s170w_dy.cdf'];
 %fnameh = ['../data/temp/t5n180w_dy.cdf'];
 dht = double(addnan(squeeze(ncread(fnameh,'DYN_13')),1000))';
 %dht = double(addnan(squeeze(ncread(fnameh,'T_20')),100))';
 
 %dht = dht(:,5);
 filt.halfdef = 'power';
-filt.cutoff = sort(2./[0.14 0.15]);
+filt.cutoff = sort(2./[0.135 0.155]);
 filt.debugflag = 0;
-nsmooth = 5;
 
 figure;
 hdht = PlotSpectrum(dht);
-hdht.YData = smooth(hdht.YData, nsmooth);
 
 filt.window = 'rect';
 hrect = PlotSpectrum(BandPass(dht, filt));
-hrect.YData = smooth(hrect.YData, nsmooth);
 
 filt.window = 'gauss';
 hgauss = PlotSpectrum(BandPass(dht, filt));
-hgauss.YData = smooth(hgauss.YData, nsmooth);
 
 filt.window = 'parzen';
 hparzen = PlotSpectrum(BandPass(dht, filt));
-hparzen.YData = smooth(hparzen.YData, nsmooth);
+
+filt.window = 'butterworth';
+hbutt = PlotSpectrum(BandPass(dht, filt));
 
 %linex(1./filt.cutoff);
-legend('DHT', 'rect filt', 'gauss filt', 'parzen filt');
-title([num2str(nsmooth) ' point smoothed dyn ht | [' num2str(1./filt.cutoff) ']']);
+legend('raw dyn ht', 'rect filt', 'gauss filt', 'parzen filt', 'butterworth');
+title(['5 band smoothed spectrum of dyn ht at (170W, 8S) | [' ...
+       num2str(sort(filt.cutoff), '%.2f ') ']']);
 beautify;
 grid on;
 linex(0.15, 'bc2m1', 'k');
 linex([0.19 0.11 0.085], [], [1 1 1]*0.5);
 
+export_fig -r300 images/filt-compare-dyn
 %% idealized test of band pass filtering
 % dynamic height ω-k spectrum shows peaks at 0.15 cpd (bc2m1) and
 % 0.2 cpd. Let's create synthetic time series and test filtering
@@ -120,29 +120,33 @@ grid on;
 
 tvec = [1:8000];
 ts = rand(size(tvec));
-winds = {'rect', 'gauss', 'parzen', 'cos2'};
+winds = {'rect', 'gauss', 'parzen', 'butterworth'};
 
-hi = 2./0.14;
-lo = 2./0.15;
+hi = 2./0.135;
+lo = 2./0.155;
+
+filt.halfdef = 'power';
+filt.cutoff = sort(2./[0.135 0.155]);
+filt.debugflag = 0;
 
 figure;
 hax = packfig(2,2);
 for ii=1:length(winds)
-    window = winds{ii};
+    filt.window = winds{ii};
 
     axes(hax(ii));
     PlotSpectrum(ts);
-    PlotSpectrum(smooth_1d(ts, hi, 'power', window));
-    PlotSpectrum(smooth_1d(ts, lo, 'power', window));
-    PlotSpectrum(smooth_1d(ts, hi, 'power', window) ...
-                 - smooth_1d(ts, lo, 'power', window));
-    title([window ' | [' num2str(hi, '%.2f') ' ' num2str(lo, '%.2f') ']']);
+    filt.N = lo; PlotSpectrum(FilterSeries(ts, filt));
+    filt.N = hi; PlotSpectrum(FilterSeries(ts, filt));
+    %PlotSpectrum(smooth_1d(ts, hi, 'power', filt.window) ...
+    %             - smooth_1d(ts, lo, 'power', filt.window));
+    PlotSpectrum(BandPass(ts, filt));
+    title([filt.window ' | [' num2str(hi, '%.2f') ' ' num2str(lo, '%.2f') ']']);
     linex([0.08 0.1 0.15 0.2]);
 
     grid on
 end
 linkaxes(hax, 'xy');
-
 
 %% plot particular mode
 

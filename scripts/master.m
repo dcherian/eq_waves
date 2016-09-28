@@ -6,7 +6,7 @@ clear opt
 opt.debug = 0; % debugging spectrum plots
 opt.filter_temp = 1; % filter temperature also?
 
-opt.filt.window = 'gauss'; % window shape
+opt.filt.window = 'butterworth'; % window shape
 opt.filt.halfdef = 'power'; % how is filt.N defined?
 opt.filt.N = NaN; % will be set based on cutoff later.
 opt.filt.debugflag = 0; % debugging spectrum plots in BandPass()
