@@ -35,17 +35,26 @@ function [] = PlotMode(modename, mm, nn, hax)
 
     % 0 mean flow mode
     for ii=1:2
-        plot(squeeze(modes.IdealTempMode(mm,nn,:,ii)) ...
-             ./ max(abs(modes.IdealTempMode(mm,nn,:,ii))), ...
-             modes.zTmode * -1, 'LineWidth', linewidth, ...
-             'DisplayName', ['T_{bc' num2str(ii) '}']);
+        hmode(ii) = plot(squeeze(modes.IdealTempMode(mm,nn,:,ii)) ...
+                         ./ max(abs(modes.IdealTempMode(mm,nn,:,ii))), ...
+                         modes.zTmode * -1, 'LineWidth', linewidth, ...
+                         'Color', 'k', ...
+                         'DisplayName', ['T_{bc' num2str(ii) '}']);
     end
 
-    title(sprintf('(%3d%s, %1d%s) | %s', abs(modes.lon(mm)), lonstr, ...
-                  abs(modes.lat(nn)), latstr, opt.filt.window));
+    try
+        hmode(1).LineStyle = '-';
+        hmode(2).LineStyle = '--';
+        hmode(3).LineStyle = '-.';
+    catch ME
+    end
+
+    title(sprintf('(%3d%s, %1d%s)', abs(modes.lon(mm)), lonstr, ...
+                  abs(modes.lat(nn)), latstr));
     ylim([-700 0]);
     xlim([-0.2 1.3]);
     hleg = legend('Location', 'SouthEast');
     hleg.Box = 'off';
+    set(gca, 'XAxisLocation','Top');
     linex(0);
 end
