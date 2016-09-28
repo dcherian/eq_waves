@@ -37,6 +37,15 @@ function [out] = FilterSeries(in, opt)
            ['FilterSeries: gapstart and gapend are not same ' ...
             'size.']);
 
+    if strcmpi(opt.window, 'butterworth')
+        % butterworth requires (desired freq)/(sampling freq/2)
+        % the factor of 4 is because
+        % a) 1./opt.cutoff = (desired freq)/2
+        %      as designed for other windows.
+        % b) (sampling freq/2) = 1/2 cpd.
+        [b,a] = butter(4, sort(2./opt.cutoff/(1/2)), 'bandpass');
+    end
+
     start = 1;
     out = nan(size(in));
     for ii=1:length(gapstart)
@@ -44,10 +53,15 @@ function [out] = FilterSeries(in, opt)
 
         if isempty(range) | (length(range) < opt.N), continue; end
 
-        % remove mean for each section. This makes the filtering work better
+        % remove mean for each section and the filter.
+        % This makes the filtering work better
         % and analysis less sensitive to choice of window.
-        out(range) = smooth_1d(in(range) - nanmean(in(range)), opt.N, ...
-                               opt.halfdef, opt.window);
+        if strcmpi(opt.window, 'butterworth')
+            out(range) = filter(b, a, in(range)-nanmean(in(range)));
+        else
+            out(range) = smooth_1d(in(range) - nanmean(in(range)), opt.N, ...
+                                   opt.halfdef, opt.window);
+        end
 
         % NaN out contaminated edges
         out(range(1) : min(range(1)+ceil(opt.N)+1, length(in))) = NaN;
@@ -61,7 +75,7 @@ function [out] = FilterSeries(in, opt)
         figure;
         PlotSpectrum(in);
         hold on;
-        PlotSpectrum(smoothed);
+        PlotSpectrum(out);
         linex(1/opt.N);
     end
 end
