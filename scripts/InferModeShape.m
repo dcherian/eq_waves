@@ -237,6 +237,6 @@ function [] = InferModeShape(opt)
                    'modes.IdealTempMode is the theoretical' ...
                    ' temperature mode on grid modes.zTmode'];
 
-  save([opt.name '.mat'], 'modes', 'data', 'opt', 'hash');
+  save([opt.name '-' opt.filt.window '.mat'], 'modes', 'data', 'opt', 'hash');
   toc(ticstart);
 end

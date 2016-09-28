@@ -1,4 +1,4 @@
-function [] = PlotMode(modename, mm, nn)
+function [] = PlotMode(modename, mm, nn, hax)
 
     load([modename '.mat']);
 
@@ -16,8 +16,14 @@ function [] = PlotMode(modename, mm, nn)
         latstr = 'N';
     end
 
-    figure; hold on;
-    set(gcf, 'Position', [520 118 650 680]);
+    if ~exist('hax', 'var')
+        figure;
+        set(gcf, 'Position', [520 118 650 680]);
+    else
+        axes(hax);
+    end
+
+    hold on;
     % inferred mode from TAO data
     errorbar(modes.InferredMode{mm,nn}, ...
              modes.depth{mm,nn} * -1, ...
@@ -35,8 +41,8 @@ function [] = PlotMode(modename, mm, nn)
              'DisplayName', ['T_{bc' num2str(ii) '}']);
     end
 
-    title(sprintf('(%3d%s, %1d%s)', abs(modes.lon(mm)), lonstr, ...
-                  abs(modes.lat(nn)), latstr));
+    title(sprintf('(%3d%s, %1d%s) | %s', abs(modes.lon(mm)), lonstr, ...
+                  abs(modes.lat(nn)), latstr, opt.filt.window));
     ylim([-700 0]);
     xlim([-0.2 1.3]);
     hleg = legend('Location', 'SouthEast');

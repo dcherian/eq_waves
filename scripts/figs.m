@@ -74,7 +74,8 @@ grid on;
 linex(0.15, 'bc2m1', 'k');
 linex([0.19 0.11 0.085], [], [1 1 1]*0.5);
 
-export_fig -r300 images/filt-compare-dyn
+export_fig -r300 images/filt-compare-dyn-ht-butter.png
+
 %% idealized test of band pass filtering
 % dynamic height ω-k spectrum shows peaks at 0.15 cpd (bc2m1) and
 % 0.2 cpd. Let's create synthetic time series and test filtering
@@ -89,7 +90,7 @@ ts = sin(2*pi*0.08*tvec) ...
      + sin(2*pi*0.1*tvec) ...
      + sin(2*pi*0.15 * tvec) ...
      + sin(2*pi*0.2 * tvec) ...
-     + rand(size(tvec));
+     + rand(size(tvec)) + 1;
 
 figure;
 hts = PlotSpectrum(ts);
@@ -147,9 +148,6 @@ for ii=1:length(winds)
     grid on
 end
 linkaxes(hax, 'xy');
-
-%% plot particular mode
-
 
 %% compare all inferred mode structures
 
@@ -214,3 +212,33 @@ xlabel('Month number');
 xlim([1 12]);
 
 export_fig -r150 images/dynht-month-hist.png
+
+%% Compare inferred mode at (170W, 8S) for different filtering
+
+linewidth = 2;
+mm = 6; nn = 7;
+
+PlotMode('bc2m1-rect', mm, nn);
+gauss = load('bc2m1-gauss.mat');
+errorbar(gauss.modes.InferredMode{mm,nn}, ...
+         gauss.modes.depth{mm,nn} * -1, ...
+         gauss.modes.InferredModeError{mm,nn}, ...
+         'horizontal', ...
+         'Marker', '.', 'MarkerSize', 12, ...
+         'LineStyle', 'none', 'LineWidth', linewidth, ...
+         'DisplayName', 'gauss');
+
+butter = load('bc2m1-butterworth.mat');
+errorbar(butter.modes.InferredMode{mm,nn}, ...
+         butter.modes.depth{mm,nn} * -1, ...
+         butter.modes.InferredModeError{mm,nn}, ...
+         'horizontal', ...
+         'Marker', '.', 'MarkerSize', 12, ...
+         'LineStyle', 'none', 'LineWidth', linewidth, ...
+         'DisplayName', 'butterworth');
+
+hleg = legend('Location', 'SouthEast');
+hleg.String{1} = 'rect';
+beautify;
+
+export_fig images/mode-shape-170w-8s-rect-gauss-butter.png
