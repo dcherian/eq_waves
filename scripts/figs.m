@@ -174,24 +174,38 @@ export_fig -r300 images/all-inferred-modes.png
 
 %% check temperature structures at given moorings
 
-load bc2m1.mat
+load bc2m1-butterworth.mat
 
 lonidx = [11 8 11];
 latidx = [4 4 1];
 
-figure; hold on;
-set(gcf, 'Position', [516 121 492 674]);
-set(gca, 'XAxisLocation', 'top');
+figure; hold on; maximize;
+hax = packfig(1,2);
+set(hax, 'XAxisLocation', 'top');
 
 for ii=1:length(lonidx)
-    label = sprintf('(%dE, %dN)', modes.lon(lonidx(ii)), modes.lat(latidx(ii)));
-    h(ii) = plot(data.Twoa{lonidx(ii), latidx(ii)}, -data.Zwoa, ...
-                 'DisplayName', label);
+    label = sprintf('(%dE, %dN)', modes.lon(lonidx(ii)), ...
+                    modes.lat(latidx(ii)));
+    axes(hax(1)); hold on;
+    h(ii) = plot(data.Twoa{lonidx(ii), latidx(ii)}, -data.Zwoa, '.-', ...
+                 'MarkerSize', 16, 'DisplayName', label);
+
+    axes(hax(2)); hold on;
+    plot(gradient(data.Twoa{lonidx(ii), latidx(ii)}, -data.Zwoa), -data.Zwoa, '.-', ...
+         'MarkerSize', 16);
 end
+linkaxes(hax, 'y');
 ylim([-800 0]);
+axes(hax(1));
 ylabel('Depth (m)'); xlabel('Temp (C)');
 legend('Location', 'SouthEast');
 beautify;
+axes(hax(2));
+xlabel('dT/dz');
+hax(2).XTick(1) = [];
+beautify;
+
+export_fig images/T-dTdz.png
 
 %% TAO/TRITON array seasonal bias?
 
