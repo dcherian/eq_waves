@@ -40,9 +40,9 @@ export_fig images/baroclinic-mode-shapes.png
 
 %% test band pass filtering
 
-fnameh = ['../data/dynht/dyn8s170w_dy.cdf'];
+fnameh = {'../data/dynht/dyn5s170w_dy.cdf';
+          '../data/dynht/dyn2n95w_dy.cdf';};
 %fnameh = ['../data/temp/t5n180w_dy.cdf'];
-dht = double(addnan(squeeze(ncread(fnameh,'DYN_13')),1000))';
 %dht = double(addnan(squeeze(ncread(fnameh,'T_20')),100))';
 
 %dht = dht(:,5);
@@ -50,33 +50,78 @@ filt.halfdef = 'power';
 filt.cutoff = sort(2./[0.135 0.155]);
 filt.debugflag = 0;
 
+SegmentLength = 365;
+
 figure; maximize;
-hdht = PlotSpectrum(dht);
 
-filt.window = 'rect';
-hrect = PlotSpectrum(BandPass(dht, filt));
+for ii=1:2
+    subplot(1,2,ii);
 
-filt.window = 'gauss';
-hgauss = PlotSpectrum(BandPass(dht, filt));
+    lon = ncread(fnameh{ii}, 'lon');
+    lat = ncread(fnameh{ii}, 'lat');
+    dht = double(addnan(squeeze(ncread(fnameh{ii} ,'DYN_13')),1000))';
 
-filt.window = 'parzen';
-hparzen = PlotSpectrum(BandPass(dht, filt));
+    hdht = PlotSpectrum(dht, SegmentLength);
+
+    filt.window = 'rect';
+    hrect = PlotSpectrum(BandPass(dht, filt), SegmentLength);
+
+    filt.window = 'gauss';
+    hgauss = PlotSpectrum(BandPass(dht, filt), SegmentLength);
+
+    filt.window = 'parzen';
+    hparzen = PlotSpectrum(BandPass(dht, filt), SegmentLength);
+
+    filt.window = 'butterworth';
+    hbutt = PlotSpectrum(BandPass(dht, filt), SegmentLength);
+    hbutt.Color = 'k';
+
+    %linex(1./filt.cutoff);
+    legend('raw dyn ht', 'rect filt', 'gauss filt', 'parzen filt', ...
+           'butterworth', 'Location', 'SouthWest');
+    title(['dyn ht at (' num2str(lon) 'E, ' ...
+           num2str(lat) 'N) | [' num2str(sort(filt.cutoff), '%.2f ') ']']);
+    beautify;
+    grid on;
+    linex(0.15, [], 'k');
+    linex([0.19 0.11 0.085], [], [1 1 1]*0.6);
+end
+
+%export_fig -r300 images/filt-compare-dyn-ht-butter.png
+
+%% time series - unfiltered and filtered
+
+
+fnameh = {'../data/dynht/dyn5s170w_dy.cdf';
+          '../data/dynht/dyn2n95w_dy.cdf';};
+%fnameh = ['../data/temp/t5n180w_dy.cdf'];
+%dht = double(addnan(squeeze(ncread(fnameh,'T_20')),100))';
+
+%dht = dht(:,5);
 
 filt.window = 'butterworth';
-hbutt = PlotSpectrum(BandPass(dht, filt));
-hbutt.Color = 'k';
+filt.halfdef = 'power';
+filt.cutoff = sort(2./[0.135 0.155]);
+filt.debugflag = 0;
 
-%linex(1./filt.cutoff);
-legend('raw dyn ht', 'rect filt', 'gauss filt', 'parzen filt', ...
-       'butterworth', 'Location', 'SouthWest');
-title(['5 band smoothed spectrum of dyn ht at (170W, 8S) | [' ...
-       num2str(sort(filt.cutoff), '%.2f ') ']']);
-beautify;
-grid on;
-linex(0.15, [], 'k');
-linex([0.19 0.11 0.085], [], [1 1 1]*0.6);
+SegmentLength = 365;
 
-export_fig -r300 images/filt-compare-dyn-ht-butter.png
+figure; maximize;
+
+for ii=1:2
+    subplot(2,1,ii); hold on;
+
+    lon = ncread(fnameh{ii}, 'lon');
+    lat = ncread(fnameh{ii}, 'lat');
+    dht = double(addnan(squeeze(ncread(fnameh{ii} ,'DYN_13')),1000))';
+
+    plot(dht-nanmean(dht));
+    plot(BandPass(dht, filt));
+    legend('raw dyn ht', filt.window, 'Location', 'SouthWest');
+    title(['dyn ht at (' num2str(lon) 'E, ' ...
+           num2str(lat) 'N) | [' num2str(sort(filt.cutoff), '%.2f ') ']']);
+    beautify;
+end
 
 %% idealized test of band pass filtering
 % dynamic height ω-k spectrum shows peaks at 0.15 cpd (bc2m1) and
@@ -84,7 +129,7 @@ export_fig -r300 images/filt-compare-dyn-ht-butter.png
 % window
 
 filt.halfdef = 'power';
-filt.cutoff = 2./[0.14 0.15];
+filt.cutoff = 2./[0.135 0.155];
 filt.debugflag = 0;
 nsmooth = 5;
 tvec = [1:8000];
@@ -99,19 +144,21 @@ hts = PlotSpectrum(ts);
 
 filt.window = 'rect';
 hrect = PlotSpectrum(BandPass(ts, filt));
-hrect.YData = smooth(hrect.YData, nsmooth);
 
 filt.window = 'gauss';
 hgauss = PlotSpectrum(BandPass(ts, filt));
-hgauss.YData = smooth(hgauss.YData, nsmooth);
 
+filt.window = 'butterworth';
+hbutter = PlotSpectrum(BandPass(ts, filt));
+
+uistack(hbutter, 'bottom');
 % filt.window = 'parzen';
 % hparzen = PlotSpectrum(BandPass(ts, filt));
 % hparzen.YData = smooth(hparzen.YData, nsmooth);
 
 %linex(1./filt.cutoff);
 legend('synthetic series', 'rect filt', ...
-       'gauss filt', 'parzen filt', ...
+       'gauss filt', 'butterworth', 'parzen filt', ...
        'Location','NorthWest');
 title([num2str(nsmooth) ' point smoothed | [' ...
        num2str(filt.cutoff) ']']);
@@ -150,6 +197,7 @@ for ii=1:length(winds)
     grid on
 end
 linkaxes(hax, 'xy');
+ylim([1e-10 1])
 
 %% compare all inferred mode structures
 
