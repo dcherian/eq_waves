@@ -18,15 +18,23 @@ function [] = InferModeShape(opt)
 
   ticstart = tic;
   datadir = '../data/';
+  woaTname = [datadir '/woa13_decav_t00_01v2.nc'];
+  woaSname = [datadir '/woa13_decav_s00_01v2.nc'];
+  woaMname = [datadir '/woa_landsea_01.msk'];
+  etoponame = [datadir '/ETOPO2v2g_f4.nc4'];
 
   fprintf('\n Loading WOA 13 data \n\n');
-  woa.X = double(ncread([datadir '/woa13_decav_s00_01v2.nc'], 'lon'));
-  woa.Y = double(ncread([datadir '/woa13_decav_s00_01v2.nc'], 'lat'));
-  woa.Z = double(ncread([datadir '/woa13_decav_s00_01v2.nc'], 'depth'));
-  woa.temp = permute(double(ncread([datadir '/woa13_decav_t00_01v2.nc'], ...
-                                   't_an')), [3 2 1]);
-  woa.sal = permute(double(ncread([datadir '/woa13_decav_s00_01v2.nc'], ...
-                                  's_an')), [3 2 1]);
+  woa.X = double(ncread(woaSname, 'lon'));
+  woa.Y = double(ncread(woaSname, 'lat'));
+  woa.Z = double(ncread(woaSname, 'depth'));
+  woa.temp = permute(double(ncread(woaTname, 't_an')), [3 2 1]);
+  woa.sal = permute(double(ncread(woaSname, 's_an')), [3 2 1]);
+
+  % woaMname contains mask with index of standard depth level that
+  % is closest to the bottom. Map this.
+  woamask = csvread(woaMname, 2);
+  woa.indbot = griddata(woamask(:,2), woamask(:,1), woamask(:,3), ...
+                        woa.X', woa.Y, 'nearest')';
 
   modes.lat = [8 5 2 0 -2 -5 -8]; % N
   % modes.lon = [95 110 125 140 137 147 155 156 165 170 180]; % W
@@ -88,18 +96,37 @@ function [] = InferModeShape(opt)
                            woa.sal(:,ilat+1,ilon) ...
                            woa.sal(:,ilat,ilon-1) ...
                            woa.sal(:,ilat,ilon+1)], 2);
+              indbotT = find(isnan(T) == 1, 1, 'first');
+              indbotS = find(isnan(S) == 1, 1, 'first');
+              assert(indbotT == indbotS);
+              indbot = indbotT;
           else
               T = woa.temp(:,ilat,ilon); %squeeze(woa.temp(ilon, ilat, :));
               S = woa.sal(:,ilat,ilon); %squeeze(woa.sal(ilon, ilat, :));
+              % figure out water depth from WOA land-sea mask
+              indbot = woa.indbot(ilon, ilat);
+          end
+
+          if indbot > length(T) % all valid data
+              indbot = length(T)+1;
+          else
+              % make sure I have correct bottom
+              % and that griddata has not screwed up
+              assert(isnan(T(indbot)) & isnan(S(indbot)));
           end
 
           Zmode = avg1(woa.Z);
           dtdz = avg1(gradient(T, woa.Z)); %diff(T)./diff(woa.Z);
+          dtdz(indbot-1:end) = NaN;
 
           N2 = bfrq(S,T,woa.Z,modes.lat(nn));%10^(-6)*ones(32,1);
           N2(N2 < 0) = min(abs(N2(:)));
+          N2(indbot-1:end) = NaN;
 
-          [Vmode, Hmode, c] = vertmode(N2,woa.Z,3,0);
+          % Vmode = vertical velocity mode shape
+          [Vmode, ~, ~] = vertmode(N2(1:indbot-2), ...
+                                   woa.Z(1:indbot-1),3,0);
+          Vmode(indbot-1:length(Zmode),:) = NaN; % extend to bottom
           % calculate temperature mode shape
           Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
 
