@@ -216,7 +216,15 @@ function [] = InferModeShape(opt)
               %     regress(Treduced(mask)', dhtfilt(mask)');
               % infer_mode_error(ii,1) = bint(2) - infer_mode(ii);
 
-              [coef, conf, dof(ii)] = dcregress(dhtfiltreg', Treduced');
+              % [coef, conf, dof(ii)] = dcregress(dhtfiltreg', Treduced', ...
+              %                                   [], 0);
+
+              rr = mf_wtls(dhtfiltreg', Treduced', nanstd(dhtfiltreg), ...
+                           nanstd(Treduced), 0);
+              coef(1) = rr(3);
+              coef(2) = rr(1);
+              conf(1) = rr(4);
+              conf(2) = rr(2);
 
               infer_mode(ii) = coef(2);
               infer_mode_error(ii) = conf(2);
