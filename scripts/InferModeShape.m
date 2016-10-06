@@ -231,6 +231,16 @@ function [] = InferModeShape(opt)
               corrcoeff(ii) = min(min( ...
                   corrcoef(dhtfilt(mask)', Treduced(mask)')));
 
+              if isnan(dof(ii))
+                  dof(ii) = min([calcdof(dhtfiltreg) ...
+                                 calcdof(Treduced)]);
+              end
+
+              if abs(corrcoeff(ii)) <= corr_sig(dof(ii), 0.95)
+                  % 0 means insignificant, NaN means no data.
+                  corrcoeff(ii) = 0;
+              end
+
               if opt.debug
                   figure(hdbg);
                   hdbgax2 = subplot(212);
