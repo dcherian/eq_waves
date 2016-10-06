@@ -110,6 +110,12 @@ function [] = PlotModeMap(plotopt)
                    'DisplayName', 'T_{std}');
           end
 
+          if plotopt.plotcorr
+              plot(ax, modes.corr{mm,nn}, modes.depth{mm,nn} * -1, ...
+                   'b.', 'MarkerSize', 12, 'DisplayName', ...
+                   'Correlation coefficient');
+          end
+
           plot(ax, [0 0], ylimits, '--', 'Color', [1 1 1]*0.6, ...
                'LineWidth', 1, 'LegendDisplay', 'off');
           ax.XLim = xlimits;
