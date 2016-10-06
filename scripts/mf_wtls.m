@@ -43,7 +43,7 @@ elseif length(yerr)~=length(y)
     error('mf_wtls error: length(yerr) must equal 1 or length(y)')
 end
 
-% [r,rsig] = mf_corrcoef(x,y);
+[r,rsig] = mf_corrcoef(x,y);
 
 ii = find(~isnan(x+y));
 N = length(ii);
@@ -54,7 +54,7 @@ stdslp = sqrt(Cab(1));
 stdint = sqrt(Cab(2));
 % taken from nlinregi.m by Steve Lentz:
 % now compute 95% ci's
-st=tinv(0.975,N-2);
+st=tinv(0.95,N-2);
 slperr=st*stdslp;
 interr=st*stdint;
 
@@ -73,4 +73,4 @@ if display_output == 1
     axis(ax);
 end
 
-rr = [slp,slperr,int,interr]; %,r,rsig];
+rr = [slp,slperr,int,interr,r,rsig];
