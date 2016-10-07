@@ -17,6 +17,7 @@ function [] = PlotModeMap(plotopt)
   fontSize = [20 24 28];
   linewidth = 1;
   labelcolor = [1 1 1]*0.3;
+  linestylemode = {'--'; '-'; '-.'}; % line style for theoretical modes.
 
   nlon = length(modes.lon);
   nlat = length(modes.lat);
@@ -92,7 +93,7 @@ function [] = PlotModeMap(plotopt)
                                squeeze(modes.IdealTempMode(mm,nn,:,ii)) ...
                                ./ max(abs(modes.IdealTempMode(mm,nn,1:ind500,ii))), ...
                                modes.zTmode * -1, 'LineWidth', linewidth, ...
-                               'Color', 'k', ...
+                               'Color', 'k', 'LineStyle', linestylemode{ii}, ...
                                'DisplayName', ['T_{bc' num2str(ii) '}']);
           end
 
