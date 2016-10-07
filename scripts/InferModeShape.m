@@ -135,7 +135,7 @@ function [] = InferModeShape(opt)
           sgn(sgn == 0) = 1;
           Tmode = Tmode .* sgn;
 
-          %% Filter out TAO data
+          %% Filter & regress TAO data
 
           % read in TAO measurements
           tao.T = double(addnan(squeeze(ncread(fnamet,'T_20')),100));
@@ -153,7 +153,7 @@ function [] = InferModeShape(opt)
           dhtfilt = BandPass(tao.dht, opt.filt);
 
           if opt.debug
-              hdbg = figure;
+              opt.hdbg = figure;
               hdbgax1 = subplot(211);
               PlotSpectrum(tao.dht);
               PlotSpectrum(dhtfilt);
@@ -196,77 +196,12 @@ function [] = InferModeShape(opt)
               data.Tfilt{mm,nn,ii,:} = Tfilt(ii,:);
               Tstd(ii) = nanstd(Tfilt(ii,:));
 
-              % find all nan's in both datasets
-              Treduced = Tfilt(ii, range);
-              mask = ~(isnan(dhtfilt) | isnan(Treduced));
-
-              Treduced(~mask) = NaN;
-              dhtfiltreg = dhtfilt; % copy for regression
-              dhtfiltreg(~mask) = NaN;
-
-              if all(mask == 0)
-                  infer_mode(ii) = NaN;
-                  infer_mode_error(ii,1) = NaN;
-                  continue;
-              end
-
-              % regress to find mode shape
-              % infer_mode(ii) = dhtfilt(mask)' \ Treduced(mask)';
-              % [infer_mode(ii), bint] = ...
-              %     regress(Treduced(mask)', dhtfilt(mask)');
-              % infer_mode_error(ii,1) = bint(2) - infer_mode(ii);
-
-              % [coef, conf, dof(ii)] = dcregress(dhtfiltreg', Treduced', ...
-              %                                   [], 0);
-
-              if isnan(dof(ii))
-                  dof(ii) = floor(min([calcdof(dhtfiltreg) ...
-                                      calcdof(Treduced)]) * 2/pi);
-                  Nsamp = ceil(length(mask) / dof(ii)) + 1;
-              end
-
-              if length(cut_nan(dhtfiltreg(1:Nsamp:end))) <= 2 | ...
-                      length(cut_nan(isnan(Treduced(1:Nsamp:end)))) <= 2
-                  continue;
-              end
-
-              rr = mf_wtls(dhtfiltreg(1:Nsamp:end)', ...
-                           Treduced(1:Nsamp:end)', ...
-                           nanstd(dhtfiltreg), nanstd(Treduced), 0);
-              coef(1) = rr(3);
-              coef(2) = rr(1);
-              conf(1) = rr(4);
-              conf(2) = rr(2);
-
-              % "Since the slope from the GMFR is simply a ratio of
-              % variances, it is ``transparent'' to the
-              % determination of correlation coefficients or
-              % coefficients of determination. It is these
-              % correlations, not the slope of the line that test
-              % the strength of the linear relationship between the
-              % two variables" - Emery & Thompson (2001), pg. 249
-              corrcoeff(ii) = min(min( ...
-                  corrcoef(dhtfilt(mask)', Treduced(mask)')));
-
-              if abs(corrcoeff(ii)) <= corr_sig(dof(ii)-2, 0.95)
-                  corrcoeff(ii) = 0; % 0 means insignificant, NaN means no data.
-                  infer_mode(ii) = NaN;
-                  infer_mode_error(ii) = NaN;
-              else
-                  infer_mode(ii) = coef(2);
-                  infer_mode_error(ii) = conf(2);
-              end
-
-              if opt.debug
-                  figure(hdbg);
-                  hdbgax2 = subplot(212);
-                  plot(dhtfilt(mask)); hold on;
-                  plot(Treduced(mask));
-                  title('filtered time series for regression');
-                  keyboard;
-              end
-              %Imode = fill_gap(dhtfilt(range)','linear',15)\fill_gap(Tfilt(:,range)','linear',15);
+              [infer_mode(ii), infer_mode_error(ii), corrcoeff(ii), dof(ii)] ...
+                  = DoRegression(dhtfilt, Tfilt(ii, range), opt);
           end
+
+          [infer_mode, infer_mode_error, corrcoeff, dof] ...
+              = DoRegression(dhtfilt, Tfilt(:, range), opt);
 
           modes.InferredMode{mm,nn} = infer_mode./nanmax(infer_mode);
           modes.InferredModeError{mm,nn} = infer_mode_error./nanmax(abs(infer_mode));
