@@ -17,13 +17,25 @@ opt.name = 'bc2m1';
 opt.filt.cutoff = 2./[0.135 0.155]; % (days) band pass filter windows
 InferModeShape(opt);
 
-plotopt.name = opt.name;
-plotopt.nmode = [1 2]; % which theoretical mode am I looking for?
-plotopt.plotcorr = 0;
+plotopt.nmode = [2]; % which theoretical mode am I looking for?
+plotopt.plotcorr = 1;
 plotopt.plotstd = 0;
-PlotModeMap(plotopt);
 
+plotopt.window = 'butterworth';
+plotopt.name = opt.name;
+PlotModeMap(plotopt);
+export_fig -r300 images/10-07-bc2m1-butter.png
+
+plotopt.window = 'rect';
+plotopt.name = opt.name;
+PlotModeMap(plotopt);
 export_fig -r300 images/09-28-bc2m1-rect.png
+
+plotopt.window = 'gauss';
+plotopt.name = opt.name;
+PlotModeMap(plotopt);
+export_fig -r300 images/09-28-bc2m1-gauss.png
+
 ylim([-500 0]);
 export_fig -r300 images/09-28-bc2m1-top500.png
 
@@ -61,4 +73,4 @@ plotopt.plotcorr = 0;
 plotopt.plotstd = 0;
 PlotModeMap(plotopt);
 
-export_fig -r300 images/09-23-bc2m2.png
+export_fig -r300 images/09-24-bc2m2.png
