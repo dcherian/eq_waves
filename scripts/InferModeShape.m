@@ -193,13 +193,10 @@ function [] = InferModeShape(opt)
               end
 
               % save temperature series for reference and calculate std dev
-              data.Tfilt{mm,nn,ii,:} = Tfilt(ii,:);
-              Tstd(ii) = nanstd(Tfilt(ii,:));
-
-              [infer_mode(ii), infer_mode_error(ii), corrcoeff(ii), dof(ii)] ...
-                  = DoRegression(dhtfilt, Tfilt(ii, range), opt);
+              data.Tfilt{mm,nn,ii} = Tfilt(ii,:);
           end
 
+          Tstd = nanstd(Tfilt(:,range)')';
           [infer_mode, infer_mode_error, corrcoeff, dof] ...
               = DoRegression(dhtfilt, Tfilt(:, range), opt);
 
