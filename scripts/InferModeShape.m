@@ -219,14 +219,6 @@ function [] = InferModeShape(opt)
               % [coef, conf, dof(ii)] = dcregress(dhtfiltreg', Treduced', ...
               %                                   [], 0);
 
-              corrcoeff(ii) = min(min( ...
-                  corrcoef(dhtfilt(mask)', Treduced(mask)')));
-
-              if abs(corrcoeff(ii)) <= corr_sig(dof(ii)-2, 0.95)
-                  % 0 means insignificant, NaN means no data.
-                  corrcoeff(ii) = 0;
-              end
-
               if isnan(dof(ii))
                   dof(ii) = floor(min([calcdof(dhtfiltreg) ...
                                       calcdof(Treduced)]) * 2/pi);
@@ -246,8 +238,24 @@ function [] = InferModeShape(opt)
               conf(1) = rr(4);
               conf(2) = rr(2);
 
-              infer_mode(ii) = coef(2);
-              infer_mode_error(ii) = conf(2);
+              % "Since the slope from the GMFR is simply a ratio of
+              % variances, it is ``transparent'' to the
+              % determination of correlation coefficients or
+              % coefficients of determination. It is these
+              % correlations, not the slope of the line that test
+              % the strength of the linear relationship between the
+              % two variables" - Emery & Thompson (2001), pg. 249
+              corrcoeff(ii) = min(min( ...
+                  corrcoef(dhtfilt(mask)', Treduced(mask)')));
+
+              if abs(corrcoeff(ii)) <= corr_sig(dof(ii)-2, 0.95)
+                  corrcoeff(ii) = 0; % 0 means insignificant, NaN means no data.
+                  infer_mode(ii) = NaN;
+                  infer_mode_error(ii) = NaN;
+              else
+                  infer_mode(ii) = coef(2);
+                  infer_mode_error(ii) = conf(2);
+              end
 
               if opt.debug
                   figure(hdbg);
