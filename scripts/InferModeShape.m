@@ -231,16 +231,33 @@ function [] = InferModeShape(opt)
               corrcoeff(ii) = min(min( ...
                   corrcoef(dhtfilt(mask)', Treduced(mask)')));
 
-              if isnan(dof(ii))
-                  dof(ii) = min([calcdof(dhtfiltreg) ...
-                                 calcdof(Treduced)]);
-              end
-
               if abs(corrcoeff(ii)) <= corr_sig(dof(ii), 0.95)
                   % 0 means insignificant, NaN means no data.
                   corrcoeff(ii) = 0;
               end
 
+              if isnan(dof(ii))
+                  dof(ii) = min([calcdof(dhtfiltreg) ...
+                                 calcdof(Treduced)]);
+              end
+
+              if length(cut_nan(dhtfiltreg(1:Nsamp:end))) <= 2 | ...
+                      length(cut_nan(isnan(Treduced(1:Nsamp:end)))) <= 2
+                  continue;
+              end
+
+              rr = mf_wtls(dhtfiltreg(1:Nsamp:end)', ...
+                           Treduced(1:Nsamp:end)', ...
+                           nanstd(dhtfiltreg), nanstd(Treduced), 0);
+              coef(1) = rr(3);
+              coef(2) = rr(1);
+              conf(1) = rr(4);
+              conf(2) = rr(2);
+
+              infer_mode(ii) = coef(2);
+              infer_mode_error(ii) = conf(2);
+
+>>>>>>> 8112abf... reorder corr sig.
               if opt.debug
                   figure(hdbg);
                   hdbgax2 = subplot(212);
