@@ -222,7 +222,7 @@ function [] = InferModeShape(opt)
               corrcoeff(ii) = min(min( ...
                   corrcoef(dhtfilt(mask)', Treduced(mask)')));
 
-              if abs(corrcoeff(ii)) <= corr_sig(dof(ii), 0.95)
+              if abs(corrcoeff(ii)) <= corr_sig(dof(ii)-2, 0.95)
                   % 0 means insignificant, NaN means no data.
                   corrcoeff(ii) = 0;
               end
