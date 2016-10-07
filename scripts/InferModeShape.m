@@ -219,15 +219,6 @@ function [] = InferModeShape(opt)
               % [coef, conf, dof(ii)] = dcregress(dhtfiltreg', Treduced', ...
               %                                   [], 0);
 
-              rr = mf_wtls(dhtfiltreg', Treduced', nanstd(dhtfiltreg), ...
-                           nanstd(Treduced), 0);
-              coef(1) = rr(3);
-              coef(2) = rr(1);
-              conf(1) = rr(4);
-              conf(2) = rr(2);
-
-              infer_mode(ii) = coef(2);
-              infer_mode_error(ii) = conf(2);
               corrcoeff(ii) = min(min( ...
                   corrcoef(dhtfilt(mask)', Treduced(mask)')));
 
@@ -237,8 +228,9 @@ function [] = InferModeShape(opt)
               end
 
               if isnan(dof(ii))
-                  dof(ii) = min([calcdof(dhtfiltreg) ...
-                                 calcdof(Treduced)]);
+                  dof(ii) = floor(min([calcdof(dhtfiltreg) ...
+                                      calcdof(Treduced)]) * 2/pi);
+                  Nsamp = ceil(length(mask) / dof(ii)) + 1;
               end
 
               if length(cut_nan(dhtfiltreg(1:Nsamp:end))) <= 2 | ...
@@ -257,7 +249,6 @@ function [] = InferModeShape(opt)
               infer_mode(ii) = coef(2);
               infer_mode_error(ii) = conf(2);
 
->>>>>>> 8112abf... reorder corr sig.
               if opt.debug
                   figure(hdbg);
                   hdbgax2 = subplot(212);
