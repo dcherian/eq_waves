@@ -1,69 +1,110 @@
-function [] = PlotMode(modename, mm, nn, hax)
+function [] = PlotMode(modename, mm, nn, plotopt, hax)
 
-    load([modename '.mat']);
+    linewidth = 1;
+    linestylemode = {'--'; '-'; '-.'}; % line style for theoretical modes.
 
-    linewidth = 2;
-
-    if modes.lon(mm) > 0
-        lonstr = 'E';
+    if ischar(modename)
+        load([modename '.mat']);
     else
-        lonstr = 'W';
+        % PlotModeMap is calling
+        modes = modename{1};
+        try
+            % TestInference won't have this.
+            data = modename{2};
+        catch ME
+        end
     end
 
-    if modes.lat(nn) < 0
-        latstr = 'S';
+    if ~exist('plotopt', 'var')
+        plotopt.nmode = [1 2];
+        plotopt.plotstd = 0;
+        plotopt.plotcorr = 1;
     else
-        latstr = 'N';
+        if ~isfield(plotopt, 'nmode')
+            plotopt.nmode = [1 2];
+        end
+        if ~isfield(plotopt, 'plotstd')
+            plotopt.plotstd = 0;
+        end
+        if ~isfield(plotopt, 'plotcorr')
+            plotopt.plotcorr = 1;
+        end
     end
 
     if ~exist('hax', 'var')
         figure;
         set(gcf, 'Position', [520 118 650 680]);
+        hax = gca;
+        providedHax = 0;
+
+        try % will fail for TestInference where this is N/A
+            if modes.lon(mm) > 0
+                lonstr = 'E';
+            else
+                lonstr = 'W';
+            end
+
+            if modes.lat(nn) < 0
+                latstr = 'S';
+            else
+                latstr = 'N';
+            end
+        catch ME
+        end
     else
-        axes(hax);
+        providedHax = 1;
     end
 
     hold on;
     % inferred mode from TAO data
-    errorbar(modes.InferredMode{mm,nn}, ...
-             modes.depth{mm,nn} * -1, ...
-             modes.InferredModeError{mm,nn}, ...
-             'horizontal', ...
-             'Marker', '.', 'MarkerSize', 12, ...
-             'LineStyle', 'none', 'LineWidth', linewidth, ...
-             'DisplayName', 'T_{TAO/TRITON}');
+    herr = errorbar(hax, modes.InferredMode{mm,nn}, ...
+                    modes.depth{mm,nn} * -1, ...
+                    modes.InferredModeError{mm,nn}, ...
+                    'horizontal', ...
+                    'Marker', '.', 'MarkerSize', 12, ...
+                    'LineStyle', 'none', 'LineWidth', linewidth, ...
+                    'DisplayName', 'T_{TAO/TRITON}');
 
     % 0 mean flow mode
-    for ii=1:2
-        hmode(ii) = plot(squeeze(modes.IdealTempMode(mm,nn,:,ii)) ...
+    for ii=plotopt.nmode
+        hmode(ii) = plot(hax, ...
+                         squeeze(modes.IdealTempMode(mm,nn,:,ii)) ...
                          ./ max(abs(modes.IdealTempMode(mm,nn,:,ii))), ...
                          modes.zTmode * -1, 'LineWidth', linewidth, ...
-                         'Color', 'k', ...
+                         'Color', 'k', 'LineStyle', linestylemode{ii}, ...
                          'DisplayName', ['T_{bc' num2str(ii) '}']);
     end
 
-    try
-        hmode(1).LineStyle = '-';
-        hmode(2).LineStyle = '--';
-        hmode(3).LineStyle = '-.';
-    catch ME
+    % temp std
+    if plotopt.plotstd
+        plot(hax, data.Tstd{mm,nn}./max(data.Tstd{mm,nn}), ...
+             data.depth{mm,nn} * -1,'k', 'LineWidth', linewidth, ...
+             'DisplayName', 'T_{std}');
     end
 
-    % temp std
-    % plot(data.Tstd{mm,nn}./max(data.Tstd{mm,nn}), ...
-    %      data.depth{mm,nn} * -1,'k', 'LineWidth', linewidth, ...
-    %      'DisplayName', 'T_{std}');
+    % correlation coefficient
+    if plotopt.plotcorr
+        plot(hax, modes.corr{mm,nn}, modes.depth{mm,nn} * -1, ...
+             'b.', 'MarkerSize', 12, 'DisplayName', ...
+             'Corr. Coeff.');
+    end
 
-    plot(modes.corr{mm,nn}, modes.depth{mm,nn} * -1, ...
-         'b.', 'MarkerSize', 12, 'DisplayName', ...
-         'Corr. coeff.');
+    if ~providedHax
+        if isfield(modes, 'lon')
+            title(sprintf('(%3d%s, %1d%s)', abs(modes.lon(mm)), lonstr, ...
+                          abs(modes.lat(nn)), latstr));
+        end
+        ylim([-700 0]);
+        xlim([-0.2 1.3]);
+        hleg = legend('Location', 'SouthEast');
+        hleg.Box = 'off';
+        set(gca, 'XAxisLocation','Top');
+        set(gcf, 'Renderer', 'painters');
+    end
 
-    title(sprintf('(%3d%s, %1d%s)', abs(modes.lon(mm)), lonstr, ...
-                  abs(modes.lat(nn)), latstr));
-    ylim([-700 0]);
-    xlim([-0.2 1.3]);
-    hleg = legend('Location', 'SouthEast');
-    hleg.Box = 'off';
-    set(gca, 'XAxisLocation','Top');
-    linex(0);
+    h0 = plot(hax, [0 0], hax.YLim, '--', 'Color', [1 1 1]*0.6, ...
+              'LineWidth', 1, 'LegendDisplay', 'off');
+
+    uistack(h0, 'bottom');
+    uistack(herr, 'top');
 end

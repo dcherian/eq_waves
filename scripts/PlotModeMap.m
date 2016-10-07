@@ -78,52 +78,13 @@ function [] = PlotModeMap(plotopt)
           % for debugging subplot placement
           % text(0.5,0.5, num2str([mm nn]), 'Units', 'normalized');
 
-          % inferred mode from TAO data
-          herr = errorbar(ax, modes.InferredMode{mm,nn}, ...
-                          modes.depth{mm,nn} * -1, ...
-                          modes.InferredModeError{mm,nn}, ...
-                          'horizontal', ...
-                          'Marker', '.', 'MarkerSize', 12, ...
-                          'LineStyle', 'none', 'LineWidth', linewidth, ...
-                          'DisplayName', 'T_{TAO/TRITON}');
-
-          % 0 mean flow mode
-          for ii=plotopt.nmode
-              hmode(ii) = plot(ax, ...
-                               squeeze(modes.IdealTempMode(mm,nn,:,ii)) ...
-                               ./ max(abs(modes.IdealTempMode(mm,nn,1:ind500,ii))), ...
-                               modes.zTmode * -1, 'LineWidth', linewidth, ...
-                               'Color', 'k', 'LineStyle', linestylemode{ii}, ...
-                               'DisplayName', ['T_{bc' num2str(ii) '}']);
-          end
-
-          try
-              hmode(1).LineStyle = '-';
-              hmode(2).LineStyle = '--';
-              hmode(3).LineStyle = '-.';
-          catch ME
-          end
-
-          % temp std
-          if plotopt.plotstd
-              plot(ax, data.Tstd{mm,nn}./max(data.Tstd{mm,nn}), ...
-                   data.depth{mm,nn} * -1,'k', 'LineWidth', linewidth, ...
-                   'DisplayName', 'T_{std}');
-          end
-
-          if plotopt.plotcorr
-              plot(ax, modes.corr{mm,nn}, modes.depth{mm,nn} * -1, ...
-                   'b.', 'MarkerSize', 12, 'DisplayName', ...
-                   'Correlation coefficient');
-          end
-
-          plot(ax, [0 0], ylimits, '--', 'Color', [1 1 1]*0.6, ...
-               'LineWidth', 1, 'LegendDisplay', 'off');
           ax.XLim = xlimits;
           ax.YLim = ylimits;
           ax.YTick = ylimits(1):200:0;
           ax.YTickLabels{1} = '';
           ax.XTick = [0 1];
+
+          PlotMode({modes; data}, mm, nn, plotopt, ax);
 
           if subplot_index == 1
               hleg = legend(ax, 'Location', 'NorthWest');
@@ -131,8 +92,6 @@ function [] = PlotModeMap(plotopt)
               hleg.Position(1) = hax(1).Position(1);
               hleg.Position(2) = 0.15;
           end
-
-          uistack(herr, 'top');
       end
   end
 
