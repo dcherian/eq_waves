@@ -133,7 +133,7 @@ function [] = InferModeShape(opt)
           % make sure maximum is always positive.
           sgn = -1 * ~(max(Tmode) == max(abs(Tmode)));
           sgn(sgn == 0) = 1;
-          Tmode = Tmode .* sgn;
+          Tmode = bsxfun(@times, Tmode, sgn);
 
           %% Filter & regress TAO data
 
@@ -200,8 +200,10 @@ function [] = InferModeShape(opt)
           [infer_mode, infer_mode_error, corrcoeff, dof] ...
               = DoRegression(dhtfilt, Tfilt(:, range), opt);
 
-          modes.InferredMode{mm,nn} = infer_mode./nanmax(infer_mode);
-          modes.InferredModeError{mm,nn} = infer_mode_error./nanmax(abs(infer_mode));
+          [imnorm, imax] = nanmax(abs(infer_mode));
+
+          modes.InferredMode{mm,nn} = infer_mode./imnorm;
+          modes.InferredModeError{mm,nn} = infer_mode_error./imnorm;
           modes.IdealTempMode(mm,nn,:,:) = Tmode;
           modes.dof{mm,nn} = dof;
           modes.corr{mm,nn} = corrcoeff;
