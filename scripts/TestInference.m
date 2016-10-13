@@ -34,8 +34,9 @@ end
 % Use amplitude and mode shape to generate T,S time series
 Tsamp = nan([ntimes length(zsamp)]);
 for zz=1:length(zsamp)
-    Tsamp(:,zz) = 20 + sum(tseries .* Tmode(zfull == zsamp(zz),:), 2);
-    Ssamp(:,zz) = 35 + sum(tseries .* Tmode(zfull == zsamp(zz),:), 2);
+    Tsamp(:,zz) = 20 + sum(bsxfun(@times, tseries, Tmode(zfull == zsamp(zz),:)), 2);
+    Ssamp(:,zz) = 35 + sum(bsxfun(@times, ...
+                                  tseries, Tmode(zfull == zsamp(zz),:)), 2);
 end
 
 % calculate dynamic height time series.
@@ -43,8 +44,8 @@ dynht = trapz(zsamp, sw_svan(Ssamp, Tsamp, ...
                              sw_pres(zsamp, 0)), 2);
 
 % add in noise
-dynht = dynht + 0.3 * max(dynht) * rand([ntimes 1]);
-Tsamp = Tsamp + 0.1 * max(Tsamp) .* rand([ntimes 1]);
+dynht = bsxfun(@plus, dynht, 0.3 * rand([ntimes 1]) * max(dynht) );
+Tsamp = bsxfun(@plus, Tsamp, 0.1 * rand([ntimes 1]) * max(Tsamp) );
 
 % BandPass filtering
 dynht = BandPass(dynht, opt.filt);

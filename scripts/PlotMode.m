@@ -1,7 +1,15 @@
 function [] = PlotMode(modename, mm, nn, plotopt, hax)
 
     linewidth = 1;
+    capwidth = 12;
     linestylemode = {'--'; '-'; '-.'}; % line style for theoretical modes.
+
+    stack = dbstack;
+    if length(stack) > 1
+        if strcmpi(stack(2).name, 'PlotModeMap')
+            capwidth = 50;
+        end
+    end
 
     if ischar(modename)
         load([modename '.mat']);
@@ -57,13 +65,13 @@ function [] = PlotMode(modename, mm, nn, plotopt, hax)
 
     hold on;
     % inferred mode from TAO data
-    herr = errorbar(hax, modes.InferredMode{mm,nn}, ...
-                    modes.depth{mm,nn} * -1, ...
-                    modes.InferredModeError{mm,nn}, ...
-                    'horizontal', ...
-                    'Marker', '.', 'MarkerSize', 12, ...
-                    'LineStyle', 'none', 'LineWidth', linewidth, ...
-                    'DisplayName', 'T_{TAO/TRITON}');
+    herr = supererr(hax, modes.InferredMode{mm,nn}, ...
+                            modes.depth{mm,nn} * -1, ...
+                            abs(modes.InferredModeError{mm,nn}), ...
+                            [], 'rI', capwidth, ...
+                            'LineWidth', linewidth, ...
+                            'DisplayName', 'T_{TAO/TRITON}');
+    herr = cut_nan(herr(:,1));
 
     % 0 mean flow mode
     for ii=plotopt.nmode
