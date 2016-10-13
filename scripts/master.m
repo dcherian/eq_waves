@@ -5,6 +5,7 @@ clear opt
 % main options
 opt.debug = 0; % debugging spectrum plots
 opt.filter_temp = 1; % filter temperature also?
+opt.totallsq = 0; % use weighted total least squares?
 
 opt.filt.window = 'butterworth'; % window shape
 opt.filt.halfdef = 'power'; % how is filt.N defined?
@@ -24,7 +25,7 @@ plotopt.plotstd = 0;
 plotopt.window = 'butterworth';
 plotopt.name = opt.name;
 PlotModeMap(plotopt);
-export_fig -r300 images/10-07-bc2m1-butter.png
+export_fig -r300 images/10-13-bc2m1-butter.png
 
 plotopt.window = 'rect';
 plotopt.name = opt.name;
