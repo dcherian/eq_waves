@@ -5,13 +5,16 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
         opt.debug = 0;
     end
 
+    if ~isfield(opt, 'totallsq')
+        opt.totallsq = 1;
+    end
+
     nz = size(Tinput, 1);
 
     infer_mode = nan([nz 1]);
     infer_mode_error = infer_mode;
     corrcoeff = infer_mode;
     dof = infer_mode;
-
 
     for ii = 1:nz
         dht = dhtinput;
@@ -34,20 +37,6 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
         %     regress(T(mask)', dhtfilt(mask)');
         % infer_mode_error(ii,1) = bint(2) - infer_mode(ii);
 
-        % [coef, conf, dof(ii)] = dcregress(dht', T', ...
-        %                                   [], 0);
-
-        if isnan(dof(ii))
-            dof(ii) = floor(min([calcdof(dht) ...
-                                calcdof(T)]) * 2/pi);
-            Nsamp = ceil(length(mask) / dof(ii)) + 1;
-        end
-
-        if length(cut_nan(dht(1:Nsamp:end))) <= 2 | ...
-                length(cut_nan(isnan(T(1:Nsamp:end)))) <= 2
-            continue;
-        end
-
         if opt.debug
             figure(opt.hdbg);
             hdbgax2 = subplot(212);
@@ -57,8 +46,24 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
             keyboard;
         end
 
-        rr = mf_wtls(dht(1:Nsamp:end)', T(1:Nsamp:end)', ...
-                     nanstd(dht), nanstd(T), 0);
+        if opt.totallsq
+            if isnan(dof(ii))
+                dof(ii) = floor(min([calcdof(dht) ...
+                                    calcdof(T)]) * 2/pi);
+                Nsamp = ceil(length(mask) / dof(ii)) + 1;
+            end
+
+            if length(cut_nan(dht(1:Nsamp:end))) <= 2 | ...
+                    length(cut_nan(isnan(T(1:Nsamp:end)))) <= 2
+                continue;
+            end
+
+            rr = mf_wtls(dht(1:Nsamp:end)', T(1:Nsamp:end)', ...
+                         nanstd(dht), nanstd(T), 0);
+        else
+            [rr([3 1]), rr([4 2]), dof(ii)] = ...
+                dcregress(dht', T', [], 0);
+        end
 
         % "Since the slope from the GMFR is simply a ratio of
         % variances, it is ``transparent'' to the
@@ -71,7 +76,8 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
             corrcoef(dht(mask)', T(mask)')));
 
         if abs(corrcoeff(ii)) <= corr_sig(dof(ii)-2, 0.95)
-            corrcoeff(ii) = 0; % 0 means insignificant, NaN means no data.
+            % 0 means insignificant, NaN means no data.
+            corrcoeff(ii) = 0;
             infer_mode(ii) = NaN;
             infer_mode_error(ii) = NaN;
         else
