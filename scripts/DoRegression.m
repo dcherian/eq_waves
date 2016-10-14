@@ -65,6 +65,9 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
         [rrols([3 1]), rrols([4 2]), ~] = ...
             dcregress(dht', T'-nanmean(T), dof(ii), [], 0);
 
+        infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
+        infer_mode_error(ii,1:2) = [rrols(2) rrwtls(2)];
+
         % "Since the slope from the GMFR is simply a ratio of
         % variances, it is ``transparent'' to the
         % determination of correlation coefficients or
@@ -75,14 +78,11 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
         corrcoeff(ii) = min(min( ...
             corrcoef(dht(mask)', T(mask)')));
 
-        if 0 %abs(corrcoeff(ii)) <= corr_sig(dof(ii)-2, 0.95)
+        if abs(corrcoeff(ii)) <= corr_sig(dof(ii)-2, 0.95)
             % 0 means insignificant, NaN means no data.
             corrcoeff(ii) = 0;
-            infer_mode(ii) = NaN;
-            infer_mode_error(ii) = NaN;
-        else
-            infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
-            infer_mode_error(ii,1:2) = [rrols(2) rrwtls(2)];
+            infer_mode(ii, 2) = NaN;
+            infer_mode_error(ii, 2) = NaN;
         end
     end
 end
