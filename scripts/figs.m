@@ -328,4 +328,5 @@ export_fig -r150 images/10-14-bc2m1-eq.png
 openfig('../images/dyn_ht_5S_5N.fig');
 handles = liney(2./opt.filt.cutoff);
 title('Farrar & Durland (2012) spectrum. 5S-5N');
-export_fig -r150 ~/farrar-durland-spectrum.png
+set(gcf, 'Position', [488 108 676 583]);
+export_fig -r150 ./images/farrar-durland-spectrum.png
