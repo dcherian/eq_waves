@@ -306,3 +306,10 @@ hleg.String{1} = 'rect';
 beautify;
 
 export_fig images/mode-shape-170w-8s-rect-gauss-butter.png
+
+%%
+
+[opt, plotopt] = DefaultOptions;
+opt.filter_temp = 1;
+modes = InferModeShape(opt, 11, 4);
+PlotMode(modes, 11, 4);

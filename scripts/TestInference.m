@@ -3,15 +3,10 @@
 % well I do at getting things back out.
 clear;
 
+[opt, plotopt] = DefaultOptions;
+
 opt.rednoise = 1;
 opt.filter_temp = 1;
-
-% filtering parameters
-opt.filt.window = 'butterworth'; % window shape
-opt.filt.halfdef = 'power'; % how is filt.N defined?
-opt.filt.N = NaN; % will be set based on cutoff later.
-opt.filt.cutoff = 2./[0.135 0.155]; % (days) band pass filter windows
-opt.filt.debugflag = 0; % debugging spectrum plots in BandPass()
 
 % synthetic time series parameters
 ntimes = 8000; % number of time steps
@@ -30,13 +25,13 @@ freq = [0.08 0.1 0.145 0.2];
 if opt.rednoise
     for ff=freq([2 4]) % mode 1
         tseries(:,1) = tseries(:,1) + ...
-            1e2 * rednoise([ntimes 1]) + ...
-            2 * rednoise([ntimes 1]).*sin(2*pi*ff*[0:ntimes-1]');
+            3e2 * rednoise([ntimes 1]) + ...
+            1 * rednoise([ntimes 1]).*sin(2*pi*ff*[0:ntimes-1]');
     end
     for ff=freq([1 3]) % mode 2
         tseries(:,2) = tseries(:,2) + ...
-            1e2 * rednoise([ntimes 1]) + ...
-            2 * rednoise([ntimes 1]).*sin(2*pi*ff*[0:ntimes-1]');
+            3e2 * rednoise([ntimes 1]) + ...
+            1 * rednoise([ntimes 1]).*sin(2*pi*ff*[0:ntimes-1]');
     end
 else
     for ff=freq([2 4]) % mode 1
@@ -81,10 +76,11 @@ end
 subplot(hax(1));
 PlotSpectrum(dynht);
 PlotSpectrum(Tsamp(:,5));
+ylim([1e-30 1e3])
 
 %% total least squares and plot
 opt.totallsq = 1;
-[infer_mode, infer_mode_error, corrcoeff] = ...
+[infer_mode, infer_mode_error, corrcoeff, dof] = ...
     DoRegression(dynht', Tsamp', opt);
 
 % get into structure so that PlotMode can be reused
@@ -96,8 +92,6 @@ modes.InferredModeError{1,1} = infer_mode_error./imnorm;
 modes.depth{1,1} = -zsamp;
 flatbot.IdealTempMode(1,1,:,:) = Tmode; %./Tmode(zfull == zsamp(1));
 flatbot.zTmode = -zfull;
-plotopt.nmode = 2;
-plotopt.plotcorr = 1;
 
 % Plot mode structure
 hax(2) = subplot(122);

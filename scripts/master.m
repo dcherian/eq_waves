@@ -1,16 +1,9 @@
 %% first figure out modes
 
-clear opt
+[opt, plotopt] = DefaultOptions;
 
-% main options
-opt.debug = 0; % debugging spectrum plots
-opt.filter_temp = 1; % filter temperature also?
-opt.totallsq = 0; % use weighted total least squares?
-
-opt.filt.window = 'butterworth'; % window shape
-opt.filt.halfdef = 'power'; % how is filt.N defined?
-opt.filt.N = NaN; % will be set based on cutoff later.
-opt.filt.debugflag = 0; % debugging spectrum plots in BandPass()
+opt.totallsq = 1; % use weighted total least squares?
+plotopt.ploterr = 0;
 
 %% bc2m1
 
@@ -18,22 +11,16 @@ opt.name = 'bc2m1';
 opt.filt.cutoff = 2./[0.135 0.155]; % (days) band pass filter windows
 InferModeShape(opt);
 
-plotopt.nmode = [2]; % which theoretical mode am I looking for?
-plotopt.plotcorr = 1;
-plotopt.plotstd = 0;
-
-plotopt.window = 'butterworth';
-plotopt.name = opt.name;
 PlotModeMap(plotopt);
 export_fig -r300 images/10-13-bc2m1-butter.png
 
+
+%% compare windows
 plotopt.window = 'rect';
-plotopt.name = opt.name;
 PlotModeMap(plotopt);
 export_fig -r300 images/09-28-bc2m1-rect.png
 
 plotopt.window = 'gauss';
-plotopt.name = opt.name;
 PlotModeMap(plotopt);
 export_fig -r300 images/09-28-bc2m1-gauss.png
 
