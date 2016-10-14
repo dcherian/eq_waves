@@ -9,7 +9,7 @@
 %    calculate "inferred mode" (Imode) again at each depth.
 % 4) Normalize by *max amplitude* and save data to Imode.mat.
 
-function [] = InferModeShape(opt)
+function [modes] = InferModeShape(opt, lonrange, latrange)
 
   %% Data & Parameters
 
@@ -26,10 +26,17 @@ function [] = InferModeShape(opt)
   nlon = length(modes.lon);
   nlat = length(modes.lat);
 
+  if ~exist('lonrange', 'var')
+      lonrange = 1:nlon;
+  end
+  if ~exist('latrange', 'var')
+      latrange = 1:nlat;
+  end
+
   %% Iterate!
   clear data
-  for mm=1:nlon
-      for nn=1:nlat
+  for mm=lonrange
+      for nn=latrange
 
           if modes.lon(mm) > 0
               lonstr = 'e';
@@ -127,24 +134,27 @@ function [] = InferModeShape(opt)
           modes.dof{mm,nn} = dof;
           modes.corr{mm,nn} = corrcoeff;
 
-          data.timedht{mm,nn} = tao.timedht;
-          data.dhtfilt{mm,nn} = dhtfilt;
-          data.Tstd{mm,nn} = Tstd;
+          modes.timedht{mm,nn} = tao.timedht;
+          modes.dhtfilt{mm,nn} = dhtfilt;
+          modes.Tstd{mm,nn} = Tstd;
       end
   end
 
   hash = githash([mfilename('fullpath') '.m']);
-  data.comment = ['Tfilt = bandpassed temperature (cell array) | ' ...
-                  'dhtfilt = band passed dynamic height' ...
-                  'Tstd = standard dev of temp time series at depth'];
 
   modes.comment = ['InferredMode(modes.lon,modes.lat,modes.depth)' ...
                    'is the ' ...
                    'mode structure inferred by regressing ' ...
                    'band passed dyn. ht against band passed' ...
-                   'temperature. '];
+                   'temperature. ' ...
+                  'Tfilt = bandpassed temperature (cell array) | ' ...
+                  'dhtfilt = band passed dynamic height | ' ...
+                  'Tstd = standard dev of temp time series at depth'];
 
-  save([opt.name '-' opt.filt.window '.mat'], ...
-       'modes', 'data', 'opt', 'hash');
+  % don't overwrite if inferring at all locations
+  if all(lonrange == 1:nlon) & all(latrange == 1:nlat)
+      save([opt.name '-' opt.filt.window '.mat'], ...
+           'modes', 'data', 'opt', 'hash');
+  end
   toc(ticstart);
 end

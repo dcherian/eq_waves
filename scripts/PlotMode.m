@@ -1,5 +1,8 @@
 function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
 
+    if ~exist('mm', 'var'), mm = 1; end
+    if ~exist('nn', 'var'), nn = 1; end
+
     linewidth = 1;
     capwidth = 12;
     linestylemode = {'--'; '-'; '-.'}; % line style for theoretical modes.
@@ -15,13 +18,7 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
     if ischar(modename)
         load([modename '.mat']);
     else
-        % PlotModeMap is calling
-        modes = modename{1};
-        try
-            % TestInference won't have this.
-            data = modename{2};
-        catch ME
-        end
+        modes = modename;
     end
 
     if ~exist('plotopt', 'var')

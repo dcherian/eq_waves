@@ -84,7 +84,7 @@ function [] = PlotModeMap(plotopt)
           ax.YTickLabels{1} = '';
           ax.XTick = [0 1];
 
-          PlotMode({modes; data}, mm, nn, plotopt, ax);
+          PlotMode(modes, mm, nn, plotopt, ax);
 
           if subplot_index == 1
               hleg = legend(ax, 'Location', 'NorthWest');
