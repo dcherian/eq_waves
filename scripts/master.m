@@ -1,12 +1,12 @@
 %% first figure out modes
 
 [opt, plotopt] = DefaultOptions;
+plotopt.plotWTLS = 0;
+plotopt.ploterr = 0;
 
 InferModeShape(opt);
-
 PlotModeMap(plotopt);
 export_fig -r300 images/10-14-bc2m1-butter.png
-
 
 %% compare windows
 plotopt.window = 'rect';
