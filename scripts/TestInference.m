@@ -79,16 +79,21 @@ PlotSpectrum(Tsamp(:,5));
 ylim([1e-30 1e3])
 
 %% total least squares and plot
-opt.totallsq = 1;
 [infer_mode, infer_mode_error, corrcoeff, dof] = ...
     DoRegression(dynht', Tsamp', opt);
 
 % get into structure so that PlotMode can be reused
-[mmax, imax] = max(abs(infer_mode));
-imnorm = sign(infer_mode(end-1)) * mmax;
-modes.InferredMode{1,1} = infer_mode./imnorm;
+[mmax, imax] = max(abs(infer_mode(:,1)));
+imnorm = sign(infer_mode(end-1,1)) * mmax;
+modes.InferredModeOLS{1,1} = infer_mode(:,1)./imnorm;
+modes.InferredModeErrorOLS{1,1} = infer_mode_error(:,1)./imnorm;
+
+[mmax, imax] = max(abs(infer_mode(:,2)));
+imnorm = sign(infer_mode(end-1,2)) * mmax;
+modes.InferredModeWTLS{1,1} = infer_mode(:,2)./imnorm;
+modes.InferredModeErrorWTLS{1,1} = infer_mode_error(:,2)./imnorm;
+
 modes.corr{1,1} = corrcoeff./sign(imnorm);
-modes.InferredModeError{1,1} = infer_mode_error./imnorm;
 modes.depth{1,1} = -zsamp;
 flatbot.IdealTempMode(1,1,:,:) = Tmode; %./Tmode(zfull == zsamp(1));
 flatbot.zTmode = -zfull;
@@ -96,28 +101,9 @@ flatbot.zTmode = -zfull;
 % Plot mode structure
 hax(2) = subplot(122);
 handles = PlotMode({modes; flatbot}, 1, 1, plotopt, hax(2));
-set(handles.herr(1), 'DisplayName', 'WTLS');
-ylim([-800 0]);
-xlim([-1 1]*2);
 title('Test with synthetic time series');
-
-%% ordinary least squares and plot
-opt.totallsq = 0;
-[infer_mode, infer_mode_error, corrcoeff] = ...
-    DoRegression(dynht', Tsamp', opt);
-
-% get into structure so that PlotMode can be reused
-[mmax, imax] = max(abs(infer_mode));
-imnorm = sign(infer_mode(end-1)) * mmax;
-modes.InferredMode{1,1} = infer_mode./imnorm;
-modes.InferredModeError{1,1} = infer_mode_error./imnorm;
-plotopt.nmode = [];
-plotopt.plotcorr = 0;
-
-% Plot mode structure
-handles = PlotMode({modes; flatbot}, 1, 1, plotopt, hax(2));
-linkprop(handles.herr, {'Color'; 'LineWidth'});
-set(handles.herr(1), 'DisplayName', 'OLS', ...
-                  'Color', 'g', 'LineWidth', 2);
 handles.hleg = legend('Location', 'SouthEast');
 handles.hleg.Box = 'off';
+
+xlim([-1.2 1.2]);
+ylim([-750 0]);

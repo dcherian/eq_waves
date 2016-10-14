@@ -127,10 +127,16 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
           [infer_mode, infer_mode_error, corrcoeff, dof] ...
               = DoRegression(dhtfilt, Tfilt(:, range), opt);
 
-          [imnorm, imax] = nanmax(abs(infer_mode));
+          [imnorm, imax] = nanmax(abs(infer_mode(:,1)));
+          modes.InferredModeOLS{mm,nn} = infer_mode(:,1)./imnorm;
+          modes.InferredModeErrorOLS{mm,nn} = ...
+              infer_mode_error(:,1)./imnorm;
 
-          modes.InferredMode{mm,nn} = infer_mode./imnorm;
-          modes.InferredModeError{mm,nn} = infer_mode_error./imnorm;
+          [imnorm, imax] = nanmax(abs(infer_mode(:,2)));
+          modes.InferredModeWTLS{mm,nn} = infer_mode(:,2)./imnorm;
+          modes.InferredModeErrorWTLS{mm,nn} = ...
+              infer_mode_error(:,2)./imnorm;
+
           modes.dof{mm,nn} = dof;
           modes.corr{mm,nn} = corrcoeff;
 

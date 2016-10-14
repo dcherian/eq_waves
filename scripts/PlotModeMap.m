@@ -66,7 +66,7 @@ function [] = PlotModeMap(plotopt)
               ax.XAxis.Color = [1 1 1];
           end
 
-          if isempty(modes.InferredMode{mm,nn})
+          if isempty(modes.InferredModeOLS{mm,nn})
               ax.YAxis.Color = [1 1 1];
               ax.YLabel.Color = labelcolor;
 

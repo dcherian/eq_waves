@@ -7,7 +7,6 @@ function [opt, plotopt] = DefaultOptions()
     opt.filt.cutoff = 2./[0.14 0.15]; % (days) band pass filter windows
     opt.filt.debugflag = 0; % debugging spectrum plots in BandPass()
 
-    opt.totallsq = 0;
     opt.filter_temp = 0;
     opt.debug = 0;  % debugging spectrum plots
 
@@ -15,6 +14,8 @@ function [opt, plotopt] = DefaultOptions()
     plotopt.plotcorr = 1;
     plotopt.plotstd = 0;
     plotopt.ploterr = 1;
+    plotopt.plotOLS = 1;
+    plotopt.plotWTLS = 1;
 
     plotopt.window = opt.filt.window;
     plotopt.name = opt.name;

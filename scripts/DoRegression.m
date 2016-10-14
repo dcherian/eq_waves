@@ -5,10 +5,6 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
         opt.debug = 0;
     end
 
-    if ~isfield(opt, 'totallsq')
-        opt.totallsq = 1;
-    end
-
     nz = size(Tinput, 1);
 
     infer_mode = nan([nz 1]);
@@ -53,20 +49,18 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
             dof(ii) = calcdof(dht) * 2/pi;
         end
 
-        if opt.totallsq
-            Nsamp = ceil(length(mask) / dof(ii)) + 1;
+        Nsamp = ceil(length(mask) / dof(ii)) + 1;
 
-            if length(cut_nan(dht(1:Nsamp:end))) <= 2 | ...
-                    length(cut_nan(isnan(T(1:Nsamp:end)))) <= 2
-                continue;
-            end
-
-            rr = mf_wtls(dht(1:Nsamp:end)', T(1:Nsamp:end)', ...
-                         nanstd(dht), nanstd(T), 0);
-        else
-            [rr([3 1]), rr([4 2]), dof(ii)] = ...
-                dcregress(dht', T'-nanmean(T), dof(ii), [], 0);
+        if length(cut_nan(dht(1:Nsamp:end))) <= 2 | ...
+                length(cut_nan(isnan(T(1:Nsamp:end)))) <= 2
+            continue;
         end
+
+        rrwtls = mf_wtls(dht(1:Nsamp:end)', T(1:Nsamp:end)', ...
+                         5e-2, nanstd(T), 0);
+
+        [rrols([3 1]), rrols([4 2]), ~] = ...
+            dcregress(dht', T'-nanmean(T), dof(ii), [], 0);
 
         % "Since the slope from the GMFR is simply a ratio of
         % variances, it is ``transparent'' to the
@@ -84,8 +78,8 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
             infer_mode(ii) = NaN;
             infer_mode_error(ii) = NaN;
         else
-            infer_mode(ii) = rr(1);
-            infer_mode_error(ii) = rr(2);
+            infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
+            infer_mode_error(ii,1:2) = [rrols(2) rrwtls(2)];
         end
     end
 end
