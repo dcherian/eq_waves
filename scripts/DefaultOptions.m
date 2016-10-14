@@ -4,7 +4,7 @@ function [opt, plotopt] = DefaultOptions()
     opt.filt.window = 'butterworth'; % window shape
     opt.filt.halfdef = 'power'; % how is filt.N defined?
     opt.filt.N = NaN; % will be set based on cutoff later.
-    opt.filt.cutoff = 2./[0.14 0.15]; % (days) band pass filter windows
+    opt.filt.cutoff = 2./[0.14 0.16]; % (days) band pass filter windows
     opt.filt.debugflag = 0; % debugging spectrum plots in BandPass()
 
     opt.filter_temp = 0;

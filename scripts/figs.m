@@ -322,3 +322,10 @@ PlotModeMap(plotopt, lonrange, latrange, modes, opt);
 ylim([-500 0]);
 export_fig -r150 images/10-14-bc2m1-eq.png
 
+%% dynht image with filter bounds
+
+[opt,~] = DefaultOptions;
+openfig('../images/dyn_ht_5S_5N.fig');
+handles = liney(2./opt.filt.cutoff);
+title('Farrar & Durland (2012) spectrum. 5S-5N');
+export_fig -r150 ~/farrar-durland-spectrum.png
