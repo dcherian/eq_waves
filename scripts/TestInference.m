@@ -64,7 +64,7 @@ end
 % calculate dynamic height time series.
 dynht = trapz(zsamp, sw_svan(Ssamp, Tsamp, sw_pres(zsamp, 0)), 2);
 
-figure;
+figure('Position', [360 156 800 600]);
 hax(1) = subplot(121);
 subplot(hax(1));
 PlotSpectrum(dynht);
@@ -93,18 +93,18 @@ imnorm = sign(infer_mode(end-1)) * mmax;
 modes.InferredMode{1,1} = infer_mode./imnorm;
 modes.corr{1,1} = corrcoeff./sign(imnorm);
 modes.InferredModeError{1,1} = infer_mode_error./imnorm;
-modes.IdealTempMode(1,1,:,:) = Tmode; %./Tmode(zfull == zsamp(1));
 modes.depth{1,1} = -zsamp;
-modes.zTmode = -zfull;
+flatbot.IdealTempMode(1,1,:,:) = Tmode; %./Tmode(zfull == zsamp(1));
+flatbot.zTmode = -zfull;
 plotopt.nmode = 2;
 plotopt.plotcorr = 1;
 
 % Plot mode structure
 hax(2) = subplot(122);
-handles = PlotMode({modes}, 1, 1, plotopt, hax(2));
-handles.herr(1).DisplayName = 'WTLS';
+handles = PlotMode({modes; flatbot}, 1, 1, plotopt, hax(2));
+set(handles.herr(1), 'DisplayName', 'WTLS');
 ylim([-800 0]);
-xlim([-1 1]*1.2);
+xlim([-1 1]*2);
 title('Test with synthetic time series');
 
 %% ordinary least squares and plot
@@ -121,10 +121,9 @@ plotopt.nmode = [];
 plotopt.plotcorr = 0;
 
 % Plot mode structure
-handles = PlotMode({modes}, 1, 1, plotopt, hax(2));
+handles = PlotMode({modes; flatbot}, 1, 1, plotopt, hax(2));
 linkprop(handles.herr, {'Color'; 'LineWidth'});
-handles.herr(1).DisplayName = 'OLS';
-handles.herr(1).Color = 'g';
-handles.herr(1).LineWidth = 2;
+set(handles.herr(1), 'DisplayName', 'OLS', ...
+                  'Color', 'g', 'LineWidth', 2);
 handles.hleg = legend('Location', 'SouthEast');
 handles.hleg.Box = 'off';

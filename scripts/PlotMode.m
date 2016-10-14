@@ -18,7 +18,13 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
     if ischar(modename)
         load([modename '.mat']);
     else
-        modes = modename;
+        if iscell(modename) & all(size(modename) == [2 1])
+            % TestInference calling
+            modes = modename{1};
+            flatbot = modename{2};
+        else
+            modes = modename;
+        end
     end
 
     if ~exist('plotopt', 'var')
