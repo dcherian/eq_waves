@@ -80,8 +80,9 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
 
     hold on;
     % inferred mode from TAO data
-    if plotopt.ploterr
-        if plotopt.plotOLS
+
+    if plotopt.plotOLS
+        if plotopt.ploterr
             handles.herro = ...
                 supererr(hax, modes.InferredModeOLS{mm,nn}, ...
                          modes.depth{mm,nn} * -1, ...
@@ -91,13 +92,15 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
                          'DisplayName', 'T_{TAO/TRITON} OLS');
             handles.herro = cut_nan(handles.herro(:,1));
         else
-            handles.herro = plot(hax, modes.InferredMode{mm,nn}, ...
+            handles.herro = plot(hax, modes.InferredModeOLS{mm,nn}, ...
                                  modes.depth{mm,nn} * -1, ...
-                                 '.', 'Color', red, 'MarkerSize', 24, ...
+                                 '.', 'Color', red, 'MarkerSize', 16, ...
                                  'DisplayName', 'T_{TAO/TRITON} OLS');
         end
+    end
 
-        if plotopt.plotWTLS
+    if plotopt.plotWTLS
+        if plotopt.ploterr
             handles.herrw = ...
                 supererr(hax, modes.InferredModeWTLS{mm,nn}, ...
                          modes.depth{mm,nn} * -1, ...
@@ -109,7 +112,7 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         else
             handles.herrw = plot(hax, modes.InferredModeWTLS{mm,nn}, ...
                                  modes.depth{mm,nn} * -1, ...
-                                 '.', 'Color', green, 'MarkerSize', 24, ...
+                                 '.', 'Color', green, 'MarkerSize', 16, ...
                                  'DisplayName', 'T_{TAO/TRITON} WTLS');
         end
     end
@@ -157,7 +160,11 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
                       'LineWidth', 1, 'LegendDisplay', 'off');
 
     uistack(handles.h0, 'bottom');
-    uistack(handles.herro, 'top');
-    uistack(handles.herrw, 'top');
 
+    if plotopt.plotOLS
+        uistack(handles.herro, 'top');
+    end
+    if plotopt.plotWTLS
+        uistack(handles.herrw, 'top');
+    end
 end
