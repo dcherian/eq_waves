@@ -33,6 +33,11 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
       latrange = 1:nlat;
   end
 
+  if ~exist('flat-bot-modes.mat', 'file')
+      TheoreticalModes;
+  end
+  load('flat-bot-modes');
+
   %% Iterate!
   clear data
   for mm=lonrange
@@ -67,7 +72,6 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
           % read in TAO measurements
           tao.T = double(addnan(squeeze(ncread(fnamet,'T_20')),100));
           modes.depth{mm,nn} = squeeze(ncread(fnamet,'depth'));
-          data.depth{mm,nn}  = modes.depth{mm,nn};
           tao.dht = ...
               double(addnan(squeeze(ncread(fnameh,'DYN_13')),1000))';
           tao.dht = tao.dht - nanmean(tao.dht);
@@ -127,12 +131,22 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
           [infer_mode, infer_mode_error, corrcoeff, dof] ...
               = DoRegression(dhtfilt, Tfilt(:, range), opt);
 
-          [imnorm, imax] = nanmax(abs(infer_mode(:,1)));
+          % Normalize so that mode shape is 1 at water depth
+          % closest to where the theoretical mode maximum is.
+          [~, izmaxwoa] = max(flatbot.IdealTempMode(mm,nn,:, ...
+                              opt.nmode));
+          zind = find_approx(modes.depth{mm,nn}, ...
+                             flatbot.Zwoa(izmaxwoa), 3);
+
+          % normalize but account for NaNs and 0s
+          imnorm = cut_nan(fillnan(infer_mode(zind, 1), 0));
+          imnorm = imnorm(1);
           modes.InferredModeOLS{mm,nn} = infer_mode(:,1)./imnorm;
           modes.InferredModeErrorOLS{mm,nn} = ...
               infer_mode_error(:,1)./imnorm;
 
-          [imnorm, imax] = nanmax(abs(infer_mode(:,2)));
+          imnorm = cut_nan(fillnan(infer_mode(zind, 2), 0));
+          imnorm = imnorm(1);
           modes.InferredModeWTLS{mm,nn} = infer_mode(:,2)./imnorm;
           modes.InferredModeErrorWTLS{mm,nn} = ...
               infer_mode_error(:,2)./imnorm;

@@ -1,12 +1,13 @@
 function [opt, plotopt] = DefaultOptions()
 
-    opt.name = 'bc2m1';
     opt.filt.window = 'butterworth'; % window shape
     opt.filt.halfdef = 'power'; % how is filt.N defined?
     opt.filt.N = NaN; % will be set based on cutoff later.
     opt.filt.cutoff = 2./[0.14 0.16]; % (days) band pass filter windows
     opt.filt.debugflag = 0; % debugging spectrum plots in BandPass()
 
+    opt.name = 'bc2m1';
+    opt.nmode = 2; % what mode am I look for? used for normalization
     opt.filter_temp = 1;
     opt.debug = 0;  % debugging spectrum plots
 
