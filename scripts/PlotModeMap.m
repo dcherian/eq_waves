@@ -1,9 +1,13 @@
 % makes huge plot with a subplot for each point on the TAO array and plots
 % theoretical and inferred mode
 
-function [] = PlotModeMap(plotopt)
+function [] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
 
-  load([plotopt.name '-' plotopt.window '.mat']);
+  if ~exist('lonrange', 'var')
+      load([plotopt.name '-' plotopt.window '.mat']);
+      lonrange = 1:length(modes.lon);
+      latrange = 1:length(modes.lat);
+  end
 
   hfig = figure;
   hfig.Position = [0 0 1600 900];
@@ -12,27 +16,27 @@ function [] = PlotModeMap(plotopt)
   hash = githash([mfilename('fullpath') '.m']);
   insertAnnotation([plotopt.name ': ' hash]);
 
-  xlimits = [-0.2 1.2];
+  xlimits = [-0.5 1.2];
   ylimits = [-750 0];
   fontSize = [20 24 28];
   linewidth = 1;
   labelcolor = [1 1 1]*0.3;
   linestylemode = {'--'; '-'; '-.'}; % line style for theoretical modes.
 
-  nlon = length(modes.lon);
-  nlat = length(modes.lat);
+  nlon = length(lonrange);
+  nlat = length(latrange);
 
   % nlat rows x nlon columns
   hax = packfig(nlat,nlon);
 
-  for mm=1:nlon
-      for nn=1:nlat
-          ind500 = find_approx(modes.zTmode,500,1);
-
+  for mm=lonrange
+      for nn=latrange
           % to maximize tension, subplot counts along row first
           % while sub2ind does column first. So use sub2ind on
           % on transposed size matrix.
-          subplot_index = sub2ind([nlon nlat],mm,nn);
+          subplot_index = sub2ind([nlon nlat], ...
+                                  mm-lonrange(1)+1, ...
+                                  nn-latrange(1)+1);
 
           ax = hax(subplot_index);
           ax.Color = 'none';

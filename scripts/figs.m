@@ -309,7 +309,16 @@ export_fig images/mode-shape-170w-8s-rect-gauss-butter.png
 
 %%
 
+lonrange = 5:11; latrange = 3:5;
+
 [opt, plotopt] = DefaultOptions;
 opt.filter_temp = 1;
-modes = InferModeShape(opt, 11, 4);
-PlotMode(modes, 11, 4);
+modes = InferModeShape(opt, lonrange, latrange);
+PlotModeMap(plotopt, lonrange, latrange, modes, opt);
+
+plotopt.plotWTLS = 0;
+PlotModeMap(plotopt, lonrange, latrange, modes, opt);
+
+ylim([-500 0]);
+export_fig -r150 images/10-14-bc2m1-eq.png
+
