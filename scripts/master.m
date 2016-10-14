@@ -2,17 +2,10 @@
 
 [opt, plotopt] = DefaultOptions;
 
-opt.totallsq = 1; % use weighted total least squares?
-plotopt.ploterr = 0;
-
-%% bc2m1
-
-opt.name = 'bc2m1';
-opt.filt.cutoff = 2./[0.135 0.155]; % (days) band pass filter windows
 InferModeShape(opt);
 
 PlotModeMap(plotopt);
-export_fig -r300 images/10-13-bc2m1-butter.png
+export_fig -r300 images/10-14-bc2m1-butter.png
 
 
 %% compare windows
