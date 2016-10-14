@@ -7,7 +7,7 @@ function [opt, plotopt] = DefaultOptions()
     opt.filt.cutoff = 2./[0.14 0.16]; % (days) band pass filter windows
     opt.filt.debugflag = 0; % debugging spectrum plots in BandPass()
 
-    opt.filter_temp = 0;
+    opt.filter_temp = 1;
     opt.debug = 0;  % debugging spectrum plots
 
     plotopt.nmode = [2]; % which theoretical mode am I looking for?
