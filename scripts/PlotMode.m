@@ -27,6 +27,7 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         plotopt.nmode = [1 2];
         plotopt.plotstd = 0;
         plotopt.plotcorr = 1;
+        plotopt.ploterr = 1;
     else
         if ~isfield(plotopt, 'nmode')
             plotopt.nmode = [1 2];
@@ -36,6 +37,9 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         end
         if ~isfield(plotopt, 'plotcorr')
             plotopt.plotcorr = 1;
+        end
+        if ~isfield(plotopt, 'ploterr')
+            plotopt.ploterr = 1;
         end
     end
 
@@ -65,13 +69,20 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
 
     hold on;
     % inferred mode from TAO data
-    handles.herr = supererr(hax, modes.InferredMode{mm,nn}, ...
+    if plotopt.ploterr
+        handles.herr = supererr(hax, modes.InferredMode{mm,nn}, ...
+                                modes.depth{mm,nn} * -1, ...
+                                abs(modes.InferredModeError{mm,nn}), ...
+                                [], 'rI', capwidth, ...
+                                'LineWidth', linewidth, ...
+                                'DisplayName', 'T_{TAO/TRITON}');
+        handles.herr = cut_nan(handles.herr(:,1));
+    else
+        handles.herr = plot(hax, modes.InferredMode{mm,nn}, ...
                             modes.depth{mm,nn} * -1, ...
-                            abs(modes.InferredModeError{mm,nn}), ...
-                            [], 'rI', capwidth, ...
-                            'LineWidth', linewidth, ...
+                            'r.', 'MarkerSize', 24, ...
                             'DisplayName', 'T_{TAO/TRITON}');
-    handles.herr = cut_nan(handles.herr(:,1));
+    end
 
     % 0 mean flow mode
     for ii=plotopt.nmode
