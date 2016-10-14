@@ -42,11 +42,13 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
             keyboard;
         end
 
+        cutoff = 2./opt.filt.cutoff;
         if opt.filter_temp
-            dof(ii) = floor(min([calcdof(dht) ...
-                                calcdof(T)]) * 2/pi);
+            dof(ii) = ...
+                floor(min([calcdof(dht, 'narrowband', cutoff) ...
+                           calcdof(T, 'narrowband', cutoff)]));
         else
-            dof(ii) = calcdof(dht) * 2/pi;
+            dof(ii) = calcdof(dht, 'narrowband', cutoff);
         end
 
         Nsamp = ceil(length(mask) / dof(ii)) + 1;
