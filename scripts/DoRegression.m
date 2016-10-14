@@ -46,12 +46,15 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
             keyboard;
         end
 
+        if opt.filter_temp
+            dof(ii) = floor(min([calcdof(dht) ...
+                                calcdof(T)]) * 2/pi);
+        else
+            dof(ii) = calcdof(dht) * 2/pi;
+        end
+
         if opt.totallsq
-            if isnan(dof(ii))
-                dof(ii) = floor(min([calcdof(dht) ...
-                                    calcdof(T)]) * 2/pi);
-                Nsamp = ceil(length(mask) / dof(ii)) + 1;
-            end
+            Nsamp = ceil(length(mask) / dof(ii)) + 1;
 
             if length(cut_nan(dht(1:Nsamp:end))) <= 2 | ...
                     length(cut_nan(isnan(T(1:Nsamp:end)))) <= 2
@@ -62,7 +65,7 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
                          nanstd(dht), nanstd(T), 0);
         else
             [rr([3 1]), rr([4 2]), dof(ii)] = ...
-                dcregress(dht', T', [], 0);
+                dcregress(dht', T'-nanmean(T), dof(ii), [], 0);
         end
 
         % "Since the slope from the GMFR is simply a ratio of
