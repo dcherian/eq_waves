@@ -56,8 +56,11 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
             continue;
         end
 
+        % use 0.5cm error on dynamic height (units cm)
+        % use 0.01 C error on temperature
+        % (Tom's suggestion).
         rrwtls = mf_wtls(dht(1:Nsamp:end)', T(1:Nsamp:end)', ...
-                         5e-2, nanstd(T), 0);
+                         0.5, 0.01, 0);
 
         [rrols([3 1]), rrols([4 2]), ~] = ...
             dcregress(dht', T'-nanmean(T), dof(ii), [], 0);
