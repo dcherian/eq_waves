@@ -99,8 +99,14 @@ function [] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
       end
   end
 
+  if strcmpi(opt.filt.window, 'butterworth')
+      cutoff = opt.filt.cutoff/2;
+  else
+      cutoff = opt.filt.cutoff;
+  end
+
   [ax,~] = suplabel([opt.name ' | ' ...
-                     opt.filt.window ' [' num2str(sort(opt.filt.cutoff), ...
+                     opt.filt.window ' [' num2str(sort(cutoff), ...
                                                   '%.1f ') ']'], 't');
   ax.YLabel.String = 'Z (m)';
   ax.YLabel.Visible = 'on';
