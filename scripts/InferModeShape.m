@@ -158,7 +158,7 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
                   'Tstd = standard dev of temp time series at depth'];
 
   % don't overwrite if inferring at all locations
-  if all(lonrange == 1:nlon) & all(latrange == 1:nlat)
+  if isequal(lonrange, 1:nlon) & isequal(latrange, 1:nlat)
       save([opt.name '-' opt.filt.window '.mat'], ...
            'modes', 'data', 'opt', 'hash');
   end
