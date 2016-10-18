@@ -26,50 +26,52 @@ function [] = TheoreticalModes()
   % edited lon values to make neater subplots ...
   % (some lons dont have enough data)
   % values in +ve East.
-  flatbot.lon = -1 * fliplr([95 110 125 140 155 170 180 ...
+  tao.lon = -1 * fliplr([95 110 125 140 155 170 180 ...
                       -165 -156 -147 -137]);
-  flatbot.lat = [8 5 2 0 -2 -5 -8]; % +ve North
+  tao.lat = [8 5 2 0 -2 -5 -8]; % +ve North
 
-  nlon = length(flatbot.lon);
-  nlat = length(flatbot.lat);
+  nlon = length(tao.lon);
+  nlat = length(tao.lat);
 
   %% Iterate!
   clear data
   for mm=1:nlon
       for nn=1:nlat
 
-          if flatbot.lon(mm) > 0
+          if tao.lon(mm) > 0
               lonstr = 'e';
           else
               lonstr = 'w';
           end
 
-          if flatbot.lat(nn) < 0
+          if tao.lat(nn) < 0
               latstr = 's';
           else
               latstr = 'n';
           end
 
           % TAO filenames
-          fnamet = [datadir 'temp/t',   num2str(abs(flatbot.lat(nn))), ...
-                    latstr,num2str(abs(flatbot.lon(mm))),lonstr,'_dy.cdf'];
-          fnameh = [datadir 'dynht/dyn',num2str(abs(flatbot.lat(nn))), ...
-                    latstr,num2str(abs(flatbot.lon(mm))),lonstr,'_dy.cdf'];
+          fnamet = [datadir 'temp/t',   num2str(abs(tao.lat(nn))), ...
+                    latstr,num2str(abs(tao.lon(mm))),lonstr,'_dy.cdf'];
+          fnameh = [datadir 'dynht/dyn',num2str(abs(tao.lat(nn))), ...
+                    latstr,num2str(abs(tao.lon(mm))),lonstr,'_dy.cdf'];
 
           % make sure observations exist before continuing
           if ~exist(fnamet,'file'), continue; end
           if ~exist(fnameh,'file'), continue; end
 
-          % Locate (flatbot.lon,lat)
-          ilat = find_approx(woa.Y, flatbot.lat(nn), 1);
-          ilon = find_approx(woa.X, flatbot.lon(mm), 1);
+          % Locate (tao.lon,lat) on WOA grid and save
+          ilat = find_approx(woa.Y, tao.lat(nn), 1);
+          ilon = find_approx(woa.X, tao.lon(mm), 1);
+          flatbot.lon(mm) = woa.X(ilon);
+          flatbot.lat(nn) = woa.Y(ilat);
 
           fprintf(['TAO at (%.1f %s, %.1f %s) | ' ...
                    'WOA at (%.1f %s, %.1f %s)\n'], ...
+                  abs(tao.lon(mm)), upper(lonstr), ...
+                  abs(tao.lat(nn)), upper(latstr), ...
                   abs(flatbot.lon(mm)), upper(lonstr), ...
-                  abs(flatbot.lat(nn)), upper(latstr), ...
-                  abs(woa.X(ilon)), upper(lonstr), ...
-                  abs(woa.Y(ilat)), upper(latstr));
+                  abs(flatbot.lat(nn)), upper(latstr));
 
           if all(isnan(woa.temp(:,ilat,ilon)))
               warning('No climatological data! Averaging...');
