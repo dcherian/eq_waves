@@ -10,11 +10,6 @@ function [] = TheoreticalModes()
   woaMname = [datadir '/woa_landsea_01.msk'];
   etoponame = [datadir '/ETOPO2v2g_f4.nc4'];
 
-  disp(' Loading ETOPO2v2 data.');
-  etopo.x = ncread(etoponame, 'x');
-  etopo.y = ncread(etoponame, 'y');
-  etopo.z = ncread(etoponame, 'z');
-
   fprintf('\n Loading WOA 13 data \n\n');
   woa.X = double(ncread(woaSname, 'lon'));
   woa.Y = double(ncread(woaSname, 'lat'));
@@ -91,29 +86,21 @@ function [] = TheoreticalModes()
               indbotT = find(isnan(T) == 1, 1, 'first');
               indbotS = find(isnan(S) == 1, 1, 'first');
               assert(indbotT == indbotS);
-              woa.indbot(ilon, ilat) = indbotT;
+              indbot = indbotT;
           else
               T = woa.temp(:,ilat,ilon); %squeeze(woa.temp(ilon, ilat, :));
               S = woa.sal(:,ilat,ilon); %squeeze(woa.sal(ilon, ilat, :));
-          end
-
-          % Get etopo depth at location
-          ilont = find_approx(etopo.x, flatbot.lon(mm));
-          ilatt = find_approx(etopo.y, flatbot.lat(nn));
-          assert(isequal(etopo.x(ilont), flatbot.lon(mm)));
-          assert(isequal(etopo.y(ilatt), flatbot.lat(nn)));
-
-          % find nearest depth level in WOA data
-          indbot = find_approx(woa.Z, -etopo.z(ilont, ilatt)) + 1;
-          if indbot > woa.indbot(ilon, ilat)
-              warning(['WOA has bottom ' ...
-                       num2str(woa.Z(indbot) + ...
-                               etopo.z(ilont, ilatt), '%.2f') ...
-                      ' m shallower than etopo!']);
+              % figure out water depth from WOA land-sea mask
               indbot = woa.indbot(ilon, ilat);
           end
-          T(indbot:end) = NaN;
-          S(indbot:end) = NaN;
+
+          if indbot > length(T) % all valid data
+              indbot = length(T)+1;
+          else
+              % make sure I have correct bottom
+              % and that griddata has not screwed up
+              assert(isnan(T(indbot)) & isnan(S(indbot)));
+          end
 
           Zmode = avg1(woa.Z);
           dtdz = avg1(gradient(T, woa.Z)); %diff(T)./diff(woa.Z);
