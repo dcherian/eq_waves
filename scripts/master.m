@@ -3,10 +3,11 @@
 [opt, plotopt] = DefaultOptions;
 plotopt.plotWTLS = 0;
 plotopt.ploterr = 0;
+plotopt.nmode = [1 2];
 
 InferModeShape(opt);
 PlotModeMap(plotopt);
-export_fig -r300 -nofontswap -depsc images/10-14-bc2m1-butter.png
+export_fig -nofontswap -depsc2 images/10-19-bc2m1-mode12.pdf
 
 %% compare windows
 plotopt.window = 'rect';
