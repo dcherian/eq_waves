@@ -98,17 +98,17 @@ function [] = TheoreticalModes()
           end
 
           % Get etopo depth at location
-          ilont = find_approx(etopo.x, flatbot.lon(mm));
-          ilatt = find_approx(etopo.y, flatbot.lat(nn));
-          assert(isequal(etopo.x(ilont), flatbot.lon(mm)));
-          assert(isequal(etopo.y(ilatt), flatbot.lat(nn)));
+          etDepth = -AvgEtopoDepth(etopo, flatbot.lon(mm), ...
+                                   flatbot.lat(nn));
 
           % find nearest depth level in WOA data
-          indbot = find_approx(woa.Z, -etopo.z(ilont, ilatt)) + 1;
+          indbot = find_approx(woa.Z, etDepth) + 1;
+          % woa.Z(woa.indbot(ilon, ilat)) - etDepth
+          % indbot - woa.indbot(ilon, ilat)
           if indbot > woa.indbot(ilon, ilat)
               warning(['WOA has bottom ' ...
                        num2str(woa.Z(indbot) + ...
-                               etopo.z(ilont, ilatt), '%.2f') ...
+                               etDepth, '%.2f') ...
                       ' m shallower than etopo!']);
               indbot = woa.indbot(ilon, ilat);
           end
@@ -149,4 +149,18 @@ function [] = TheoreticalModes()
   flatbot.hash = githash([mfilename('fullpath') '.m']);
   save('flat-bot-modes.mat', 'flatbot');
   toc(ticstart);
+end
+
+function [depth] = AvgEtopoDepth(etopo, lon, lat)
+
+    ilon1 = find_approx(etopo.x, floor(lon));
+    ilat1 = find_approx(etopo.y, floor(lat));
+
+    ilon2 = find_approx(etopo.x, ceil(lon));
+    ilat2 = find_approx(etopo.y, ceil(lat));
+
+    Z = etopo.z(ilon1:ilon2, ilat1:ilat2);
+    Z(Z >= -1) = NaN; % NaN out land
+
+    depth = nanmean(Z(:));
 end
