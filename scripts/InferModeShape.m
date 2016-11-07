@@ -140,16 +140,22 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
 
           % normalize but account for NaNs and 0s
           imnorm = cut_nan(fillnan(infer_mode(zind, 1), 0));
-          imnorm = imnorm(1);
+          imnorm = max(imnorm);
           modes.InferredModeOLS{mm,nn} = infer_mode(:,1)./imnorm;
           modes.InferredModeErrorOLS{mm,nn} = ...
               infer_mode_error(:,1)./imnorm;
 
           imnorm = cut_nan(fillnan(infer_mode(zind, 2), 0));
-          imnorm = imnorm(1);
+          imnorm = max(imnorm);
           modes.InferredModeWTLS{mm,nn} = infer_mode(:,2)./imnorm;
           modes.InferredModeErrorWTLS{mm,nn} = ...
               infer_mode_error(:,2)./imnorm;
+
+          assert(all(cut_nan(modes.InferredModeOLS{mm,nn}) <= 1), ...
+                 'OLS regression ampl > 1');
+          % for low correlation, this might not work!
+          % assert(all(cut_nan(modes.InferredModeWTLS{mm,nn}) <= 1), ...
+          % 'WTLS regression ampl > 1');
 
           modes.dof{mm,nn} = dof;
           modes.corr{mm,nn} = corrcoeff;
