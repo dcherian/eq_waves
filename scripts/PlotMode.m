@@ -1,3 +1,4 @@
+%  [handles] = PlotMode(modename, mm, nn, plotopt, hax)
 function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
 
     if ~exist('mm', 'var'), mm = 1; end
@@ -49,6 +50,12 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         end
         if ~isfield(plotopt, 'ploterr')
             plotopt.ploterr = 1;
+        end
+        if ~isfield(plotopt, 'plotOLS')
+            plotopt.plotOLS = 1;
+        end
+        if ~isfield(plotopt, 'plotWTLS')
+            plotopt.plotWTLS = 0;
         end
     end
 
