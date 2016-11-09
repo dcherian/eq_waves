@@ -33,3 +33,42 @@ xlabel({'Flat-bottom temp mode'; ...
 ylabel('Z (m)');
 
 export_fig -c[Inf,0,0,0] -despc2 images/flat-bottom-modes.pdf
+
+%% dynht spectrum with filter bounds
+
+[opt,~] = DefaultOptions;
+hf = openfig('../images/dyn_ht_5S_5N.fig');
+hax = hf.Children;
+% hax(1) is main spectrum
+% hax(2) is colorbar
+
+axes(hax(1));
+handles = liney(2./opt.filt.cutoff);
+title({'Farrar & Durland (2012) spectrum'; '(5S-5N)'});
+beautify([13 14 15], 'Times');
+caxis([1 2.5]);
+colormap(cbrewer('seq', 'OrRd', 20));
+hcb = colorbar;
+hcb.Label.String = 'Log_{10} of spectral density (cm^2/cpd/deg^{-1})';
+
+hax(2).Color = 'None';
+hax(2).YAxis.Color = 'None';
+hax(2).XAxis.Color = 'None';
+hax(2).Children(1).FontSize = 13;
+hax(2).Children(1).FontName = 'Times';
+hax(2).Children(1).Color = hcb.Label.Color;
+hax(2).Children(end).delete;
+for ii=2:5
+    hax(2).Children(ii).LineWidth = 1;
+    hax(2).Children(ii).Color = hcb.Label.Color;
+end
+
+resizeImageForPub('onecolumn');
+
+hax(1).Position(1) = 0.19;
+hax(2).Position(1) = 0.88;
+hax(2).Position(4) = 0.7;
+
+hax(1).Color = 'None';
+
+export_fig -c[Inf,0,Inf,0] -despc ./images/farrar-durland-spectrum.pdf
