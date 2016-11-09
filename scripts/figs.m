@@ -330,3 +330,20 @@ handles = liney(2./opt.filt.cutoff);
 title('Farrar & Durland (2012) spectrum. 5S-5N');
 set(gcf, 'Position', [488 108 676 583]);
 export_fig -r150 ./images/farrar-durland-spectrum.png
+
+%% compare correlations with amplitudes
+
+% load('bc2m1-butterworth');
+
+figure; hold on;
+for ii=1:length(modes.lon)
+    for jj=1:length(modes.lat)
+        plot(modes.InferredModeOLS{ii,jj}, modes.corr{ii,jj}, ...
+             'k.');
+        if any(modes.InferredModeOLS{ii,jj} > 1)
+            disp([ii jj])
+        end
+    end
+end
+xlabel('Inferred mode amplitude');
+ylabel('Corr. coeff');
