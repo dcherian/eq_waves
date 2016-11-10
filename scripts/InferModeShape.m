@@ -182,10 +182,10 @@ function [norm] = findNormalization(shape)
 
     [norm,imax] = nanmax(shape);
 
-    if imax > 16
-        % max is too deep, generally happens with WTLS
-        [norm,imax] = nanmax(shape(1:imax-1));
-    end
+    % if imax > 17
+    %     % max is too deep, generally happens with WTLS
+    %     [norm,imax] = nanmax(shape(1:imax-1));
+    % end
 
     % Normalize so that mode shape is 1 at water depth
     % closest to where the theoretical mode maximum is.
