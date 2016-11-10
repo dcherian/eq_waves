@@ -159,8 +159,6 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
       end
   end
 
-  hash = githash([mfilename('fullpath') '.m']);
-
   modes.comment = ['InferredMode(modes.lon,modes.lat,modes.depth)' ...
                    'is the ' ...
                    'mode structure inferred by regressing ' ...
@@ -172,6 +170,7 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
 
   % don't overwrite if inferring at all locations
   if isequal(lonrange, 1:nlon) & isequal(latrange, 1:nlat)
+      hash = githash([mfilename('fullpath') '.m']);
       save([opt.name '-' opt.filt.window '.mat'], ...
            'modes', 'data', 'opt', 'hash');
   end
