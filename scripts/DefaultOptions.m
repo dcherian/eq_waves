@@ -10,6 +10,7 @@ function [opt, plotopt] = DefaultOptions()
     opt.nmode = 2; % what mode am I look for? used for normalization
     opt.filter_temp = 1;
     opt.debug = 0;  % debugging spectrum plots
+    opt.TagainstDHT = 1; % T on y-axis of regression?
 
     plotopt.nmode = [2]; % which theoretical mode am I looking for?
     plotopt.plotcorr = 1;
