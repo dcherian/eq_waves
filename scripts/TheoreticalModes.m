@@ -135,6 +135,7 @@ function [] = TheoreticalModes()
           sgn(sgn == 0) = 1;
           Tmode = bsxfun(@times, Tmode, sgn);
 
+          flatbot.IdealWMode(mm,nn,:,:) = Vmode;
           flatbot.IdealTempMode(mm,nn,:,:) = Tmode;
           flatbot.Twoa{mm,nn} = T;
           flatbot.Swoa{mm,nn} = S;
@@ -145,6 +146,8 @@ function [] = TheoreticalModes()
   flatbot.zTmode = Zmode;
   flatbot.comment = ['flatbot.IdealTempMode is the theoretical' ...
                      ' temperature mode on grid flatbot.zTmode. ' ...
+                     'Simlarly, flatbot.IdealWMode is the ' ...
+                     'vertical velocity mode shape; ' ...
                      'flatbot(T,S,Z)woa are WOA temp, salt, depth'];
   flatbot.hash = githash([mfilename('fullpath') '.m']);
   save('flat-bot-modes.mat', 'flatbot');
