@@ -47,7 +47,12 @@ function [] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
           ax.NextPlot = 'add'; % hold on
 
           if mod(subplot_index,nlon) == 1
-              ax.YLabel.String = [num2str(modes.lat(nn))  'N'];
+              if modes.lat(nn) > 0
+                  latstr = 'N';
+              else
+                  latstr = 'S';
+              end
+              ax.YLabel.String = [num2str(abs(modes.lat(nn)))  latstr];
               ax.YLabel.Units = 'normalized';
               ax.YLabel.Position(1) = -0.8;
           else
