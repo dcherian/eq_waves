@@ -111,7 +111,7 @@ function [] = TheoreticalModes()
           end
 
           Zmode = avg1(woa.Z);
-          dtdz = avg1(gradient(T, woa.Z)); %diff(T)./diff(woa.Z);
+          dtdz = -avg1(gradient(T, woa.Z)); %diff(T)./diff(woa.Z);
           dtdz(indbot-1:end) = NaN;
 
           N2 = bfrq(S,T,woa.Z,flatbot.lat(nn));%10^(-6)*ones(32,1);
