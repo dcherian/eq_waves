@@ -10,6 +10,11 @@ function [] = TheoreticalModes()
   woaMname = [datadir '/woa_landsea_01.msk'];
   etoponame = [datadir '/ETOPO2v2g_f4.nc4'];
 
+  disp(' Loading ETOPO2v2 data.');
+  etopo.x = ncread(etoponame, 'x');
+  etopo.y = ncread(etoponame, 'y');
+  etopo.z = ncread(etoponame, 'z');
+
   fprintf('\n Loading WOA 13 data \n\n');
   woa.X = double(ncread(woaSname, 'lon'));
   woa.Y = double(ncread(woaSname, 'lat'));
