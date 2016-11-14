@@ -322,15 +322,6 @@ PlotModeMap(plotopt, lonrange, latrange, modes, opt);
 ylim([-500 0]);
 export_fig -r150 images/10-14-bc2m1-eq.png
 
-%% dynht image with filter bounds
-
-[opt,~] = DefaultOptions;
-openfig('../images/dyn_ht_5S_5N.fig');
-handles = liney(2./opt.filt.cutoff);
-title('Farrar & Durland (2012) spectrum. 5S-5N');
-set(gcf, 'Position', [488 108 676 583]);
-export_fig -r150 ./images/farrar-durland-spectrum.png
-
 %% compare correlations with amplitudes
 
 % load('bc2m1-butterworth');
@@ -347,3 +338,18 @@ for ii=1:length(modes.lon)
 end
 xlabel('Inferred mode amplitude');
 ylabel('Corr. coeff');
+
+%% check regression slopes
+mm = 5; nn = 2;
+
+[opt, plotopt] = DefaultOptions;
+modes = InferModeShape(opt, mm, nn);
+PlotMode(modes, mm, nn);
+
+%% slope burger number
+lat = 2.5; % degrees
+f = 2* (2*pi/86400) * sind(lat);
+alpha = 0.01; % bottom slope
+N = 1e-2;
+
+(alpha * N/f)^2
