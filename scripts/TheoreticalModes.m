@@ -132,6 +132,7 @@ function [] = TheoreticalModes()
           sgn(sgn == 0) = 1;
           Tmode = bsxfun(@times, Tmode, sgn);
 
+          flatbot.N2(mm,nn,:) = N2;
           flatbot.IdealWMode(mm,nn,:,:) = Vmode;
           flatbot.IdealTempMode(mm,nn,:,:) = Tmode;
           flatbot.Twoa{mm,nn} = T;
