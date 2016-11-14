@@ -7,13 +7,14 @@ clear;
 
 opt.rednoise = 1;
 opt.filter_temp = 1;
+plotopt.plotWTLS = 0;
 
 % synthetic time series parameters
 ntimes = 8000; % number of time steps
 zfull = -5000:25:0; % full depth z-vector
 zsamp = -[500 450 400 300 250 200 150 100 75 50 25]; % z vector for measurements
-Tmode(:,1) = -sin(pi*zfull/max(abs(zfull/16))); % ideal mode-1 shape
-Tmode(:,2) = -sin(2*pi*zfull/max(abs(zfull/16))); % ideal mode-2 shape
+Tmode(:,1) = -sin(pi*zfull/max(abs(zfull/16))  + 0* 2*pi * rand(size(zfull))); % ideal mode-1 shape
+Tmode(:,2) = -sin(2*pi*zfull/max(abs(zfull/16)) + 0* 2*pi * rand(size(zfull))); % ideal mode-2 shape
 
 % generate a wave amplitude time series
 % one for each wave vertical mode
@@ -22,15 +23,17 @@ rng('shuffle');
 tseries = zeros([ntimes size(Tmode, 2)]);
 freq = [0.08 0.1 0.145 0.2];
 
+opt.filt.cutoff = 2./[0.14 0.16];
+
 if opt.rednoise
     for ff=freq([2 4]) % mode 1
         tseries(:,1) = tseries(:,1) + ...
-            3e2 * rednoise([ntimes 1]) + ...
+            1e2 * rednoise([ntimes 1]) + ...
             1 * rednoise([ntimes 1]).*sin(2*pi*ff*[0:ntimes-1]');
     end
     for ff=freq([1 3]) % mode 2
         tseries(:,2) = tseries(:,2) + ...
-            3e2 * rednoise([ntimes 1]) + ...
+            1e2 * rednoise([ntimes 1]) + ...
             1 * rednoise([ntimes 1]).*sin(2*pi*ff*[0:ntimes-1]');
     end
 else
