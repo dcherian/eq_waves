@@ -91,12 +91,10 @@ function [] = TheoreticalModes()
               indbotT = find(isnan(T) == 1, 1, 'first');
               indbotS = find(isnan(S) == 1, 1, 'first');
               assert(indbotT == indbotS);
-              indbot = indbotT;
+              woa.indbot(ilon, ilat) = indbotT;
           else
               T = woa.temp(:,ilat,ilon); %squeeze(woa.temp(ilon, ilat, :));
               S = woa.sal(:,ilat,ilon); %squeeze(woa.sal(ilon, ilat, :));
-                                        % figure out water depth from WOA land-sea mask
-              indbot = woa.indbot(ilon, ilat);
           end
 
           % Get etopo depth at location
