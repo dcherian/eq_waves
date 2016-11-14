@@ -131,25 +131,24 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
           [infer_mode, infer_mode_error, corrcoeff, dof] ...
               = DoRegression(dhtfilt, Tfilt(:, range), opt);
 
-          % Normalize so that mode shape is 1 at water depth
-          % closest to where the theoretical mode maximum is.
-          [~, izmaxwoa] = max(flatbot.IdealTempMode(mm,nn,:, ...
-                              opt.nmode));
-          zind = find_approx(modes.depth{mm,nn}, ...
-                             flatbot.Zwoa(izmaxwoa), 3);
-
-          % normalize but account for NaNs and 0s
-          imnorm = cut_nan(fillnan(infer_mode(zind, 1), 0));
-          imnorm = imnorm(1);
+          imnorm = findNormalization(infer_mode(:,1));
           modes.InferredModeOLS{mm,nn} = infer_mode(:,1)./imnorm;
           modes.InferredModeErrorOLS{mm,nn} = ...
               infer_mode_error(:,1)./imnorm;
 
-          imnorm = cut_nan(fillnan(infer_mode(zind, 2), 0));
-          imnorm = imnorm(1);
+          imnorm = findNormalization(infer_mode(:,2));
           modes.InferredModeWTLS{mm,nn} = infer_mode(:,2)./imnorm;
           modes.InferredModeErrorWTLS{mm,nn} = ...
               infer_mode_error(:,2)./imnorm;
+
+          if any(cut_nan(modes.InferredModeOLS{mm,nn}) > 1)
+              warning('OLS regression ampl > 1');
+              keyboard;
+          end
+
+          % for low correlation, this might not work!
+          % assert(all(cut_nan(modes.InferredModeWTLS{mm,nn}) <= 1), ...
+          % 'WTLS regression ampl > 1');
 
           modes.dof{mm,nn} = dof;
           modes.corr{mm,nn} = corrcoeff;
@@ -159,8 +158,6 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
           modes.Tstd{mm,nn} = Tstd;
       end
   end
-
-  hash = githash([mfilename('fullpath') '.m']);
 
   modes.comment = ['InferredMode(modes.lon,modes.lat,modes.depth)' ...
                    'is the ' ...
@@ -173,8 +170,30 @@ function [modes] = InferModeShape(opt, lonrange, latrange)
 
   % don't overwrite if inferring at all locations
   if isequal(lonrange, 1:nlon) & isequal(latrange, 1:nlat)
+      hash = githash([mfilename('fullpath') '.m']);
       save([opt.name '-' opt.filt.window '.mat'], ...
            'modes', 'data', 'opt', 'hash');
   end
   toc(ticstart);
+end
+
+function [norm] = findNormalization(shape)
+
+    [norm,imax] = nanmax(shape);
+
+    % if imax > 17
+    %     % max is too deep, generally happens with WTLS
+    %     [norm,imax] = nanmax(shape(1:imax-1));
+    % end
+
+    % Normalize so that mode shape is 1 at water depth
+    % closest to where the theoretical mode maximum is.
+    % [~, izmaxwoa] = max(flatbot.IdealTempMode(mm,nn,:, ...
+    %                     opt.nmode));
+    % zind = find_approx(modes.depth{mm,nn}, ...
+    %                    flatbot.Zwoa(izmaxwoa), 5);
+
+    % % normalize but account for NaNs and 0s
+    % imnorm = cut_nan(fillnan(infer_mode(zind, 1), 0));
+    % imnorm = max(imnorm);
 end

@@ -7,7 +7,7 @@ plotopt.nmode = [1 2];
 
 InferModeShape(opt);
 PlotModeMap(plotopt);
-export_fig -nofontswap -depsc2 images/10-19-bc2m1-mode12.pdf
+export_fig  -p0.005 -nofontswap -depsc images/11-09-bc2m1-large.pdf
 
 %% compare windows
 plotopt.window = 'rect';

@@ -90,16 +90,21 @@ function [] = TheoreticalModes()
           else
               T = woa.temp(:,ilat,ilon); %squeeze(woa.temp(ilon, ilat, :));
               S = woa.sal(:,ilat,ilon); %squeeze(woa.sal(ilon, ilat, :));
-              % figure out water depth from WOA land-sea mask
+                                        % figure out water depth from WOA land-sea mask
               indbot = woa.indbot(ilon, ilat);
           end
 
-          if indbot > length(T) % all valid data
-              indbot = length(T)+1;
-          else
-              % make sure I have correct bottom
-              % and that griddata has not screwed up
-              assert(isnan(T(indbot)) & isnan(S(indbot)));
+          % Get etopo depth at location
+          etDepth = -AvgEtopoDepth(etopo, flatbot.lon(mm), ...
+                                   flatbot.lat(nn));
+
+          % find nearest depth level in WOA data
+          indbot = find_approx(woa.Z, etDepth) + 1;
+          if indbot > woa.indbot(ilon, ilat)
+              warning(['WOA has bottom ' ...
+                       num2str(woa.Z(indbot) - etDepth, '%.2f') ...
+                       ' m shallower than etopo!']);
+              indbot = woa.indbot(ilon, ilat);
           end
 
           Zmode = avg1(woa.Z);
@@ -114,7 +119,7 @@ function [] = TheoreticalModes()
           [Vmode, ~, ~] = vertmode(N2(1:indbot-2), ...
                                    woa.Z(1:indbot-1),3,0);
           Vmode(indbot-1:length(Zmode),:) = NaN; % extend to bottom
-          % calculate temperature mode shape
+                                                 % calculate temperature mode shape
           Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
 
           % make sure maximum is always positive.
@@ -122,6 +127,8 @@ function [] = TheoreticalModes()
           sgn(sgn == 0) = 1;
           Tmode = bsxfun(@times, Tmode, sgn);
 
+          flatbot.N2(mm,nn,:) = N2;
+          flatbot.IdealWMode(mm,nn,:,:) = Vmode;
           flatbot.IdealTempMode(mm,nn,:,:) = Tmode;
           flatbot.Twoa{mm,nn} = T;
           flatbot.Swoa{mm,nn} = S;
@@ -132,8 +139,24 @@ function [] = TheoreticalModes()
   flatbot.zTmode = Zmode;
   flatbot.comment = ['flatbot.IdealTempMode is the theoretical' ...
                      ' temperature mode on grid flatbot.zTmode. ' ...
+                     'Simlarly, flatbot.IdealWMode is the ' ...
+                     'vertical velocity mode shape; ' ...
                      'flatbot(T,S,Z)woa are WOA temp, salt, depth'];
   flatbot.hash = githash([mfilename('fullpath') '.m']);
   save('flat-bot-modes.mat', 'flatbot');
   toc(ticstart);
+end
+
+function [depth] = AvgEtopoDepth(etopo, lon, lat)
+
+    ilon1 = find_approx(etopo.x, floor(lon));
+    ilat1 = find_approx(etopo.y, floor(lat));
+
+    ilon2 = find_approx(etopo.x, ceil(lon));
+    ilat2 = find_approx(etopo.y, ceil(lat));
+
+    Z = etopo.z(ilon1:ilon2, ilat1:ilat2);
+    Z(Z >= -1) = NaN; % NaN out land
+
+    depth = nanmean(Z(:));
 end

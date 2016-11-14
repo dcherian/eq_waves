@@ -1,3 +1,4 @@
+%  [handles] = PlotMode(modename, mm, nn, plotopt, hax)
 function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
 
     if ~exist('mm', 'var'), mm = 1; end
@@ -50,6 +51,12 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         if ~isfield(plotopt, 'ploterr')
             plotopt.ploterr = 1;
         end
+        if ~isfield(plotopt, 'plotOLS')
+            plotopt.plotOLS = 1;
+        end
+        if ~isfield(plotopt, 'plotWTLS')
+            plotopt.plotWTLS = 0;
+        end
     end
 
     if ~exist('hax', 'var')
@@ -57,21 +64,6 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         set(gcf, 'Position', [520 118 650 680]);
         hax = gca;
         providedHax = 0;
-
-        try % will fail for TestInference where this is N/A
-            if modes.lon(mm) > 0
-                lonstr = 'E';
-            else
-                lonstr = 'W';
-            end
-
-            if modes.lat(nn) < 0
-                latstr = 'S';
-            else
-                latstr = 'N';
-            end
-        catch ME
-        end
     else
         providedHax = 1;
     end
@@ -145,8 +137,7 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
 
     if ~providedHax
         if isfield(modes, 'lon')
-            title(sprintf('(%3d%s, %1d%s)', abs(modes.lon(mm)), lonstr, ...
-                          abs(modes.lat(nn)), latstr));
+            title(getTitleString(modes.lon(mm), modes.lat(nn)))
         end
         ylim([-700 0]);
         xlim([-0.2 1.3]);

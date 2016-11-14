@@ -61,11 +61,19 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
         % use 0.5cm error on dynamic height (units cm)
         % use 0.01 C error on temperature
         % (Tom's suggestion).
-        rrwtls = mf_wtls(dht(1:Nsamp:end)', T(1:Nsamp:end)', ...
-                         0.5, 0.01, 0);
+        if opt.TagainstDHT
+            rrwtls = mf_wtls(dht(1:Nsamp:end)', T(1:Nsamp:end)', ...
+                             0.1, 0.01, 0);
 
-        [rrols([3 1]), rrols([4 2]), ~] = ...
-            dcregress(dht', T'-nanmean(T), dof(ii), [], 0);
+            [rrols([3 1]), rrols([4 2]), ~] = ...
+                dcregress(dht', T'-nanmean(T), dof(ii), [], 0);
+        else
+            rrwtls = mf_wtls(T(1:Nsamp:end)', dht(1:Nsamp:end)', ...
+                             0.01, 0.5, 0);
+
+            [rrols([3 1]), rrols([4 2]), ~] = ...
+                dcregress(T'-nanmean(T), dht', dof(ii), [], 0);
+        end
 
         infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
         infer_mode_error(ii,1:2) = [rrols(2) rrwtls(2)];
