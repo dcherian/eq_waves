@@ -103,13 +103,10 @@ function [] = TheoreticalModes()
 
           % find nearest depth level in WOA data
           indbot = find_approx(woa.Z, etDepth) + 1;
-          % woa.Z(woa.indbot(ilon, ilat)) - etDepth
-          % indbot - woa.indbot(ilon, ilat)
           if indbot > woa.indbot(ilon, ilat)
               warning(['WOA has bottom ' ...
-                       num2str(woa.Z(indbot) + ...
-                               etDepth, '%.2f') ...
-                      ' m shallower than etopo!']);
+                       num2str(woa.Z(indbot) - etDepth, '%.2f') ...
+                       ' m shallower than etopo!']);
               indbot = woa.indbot(ilon, ilat);
           end
           T(indbot:end) = NaN;
