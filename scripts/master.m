@@ -2,12 +2,13 @@
 
 [opt, plotopt] = DefaultOptions;
 plotopt.plotWTLS = 0;
-plotopt.ploterr = 0;
+plotopt.ploterr = 1;
 plotopt.nmode = [1 2];
 
-InferModeShape(opt);
+tao = ReadTaoTriton;
+InferModeShape(opt, tao);
 PlotModeMap(plotopt);
-export_fig  -p0.005 -nofontswap -depsc images/11-09-bc2m1-large.pdf
+export_fig  -p0.005 -nofontswap -depsc images/29-11-bc2m1.pdf
 
 %% compare windows
 plotopt.window = 'rect';
