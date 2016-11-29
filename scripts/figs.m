@@ -353,3 +353,54 @@ alpha = 0.01; % bottom slope
 N = 1e-2;
 
 (alpha * N/f)^2
+
+%% correlation (white noise) significance test
+
+tic;
+numMC = 5e3;
+numel = 8000;
+
+rred = nan([numMC 1]);
+rwhite = nan([numMC 1]);
+for ii=1:numMC
+    x = rednoise([numel 1]);
+    y = rednoise([numel 1]);
+
+    rmat = corrcoef(x,y);
+    rred(ii) = rmat(1,2);
+
+    x = whitenoise([numel 1]);
+    y = whitenoise([numel 1]);
+
+    rmat = corrcoef(x,y);
+    rwhite(ii) = rmat(1,2);
+end
+
+rsort = sort(abs(rwhite));
+sigwhite = rsort(floor(0.975*numMC));
+rsort = sort(abs(rred));
+sigred = rsort(floor(0.975*numMC));
+disp(['white: ' num2str(sigwhite, '%.4f')]);
+disp(['red: ' num2str(sigred, '%.4f')]);
+corr_sig(numel, 0.95)
+
+clf
+hr = histogram(rred, 20, 'EdgeColor', 'none', 'FaceAlpha', 0.5);
+hold on;
+hw = histogram(rwhite, 20, ...
+               'FaceColor', 'w');
+
+hthsig = linex([-1 1]*corr_sig(numel, 0.95));
+hwsig = linex([-1 1]*sigwhite, [], 'k');
+hrsig = linex([-1 1]*sigred, [], 'r');
+
+legend([hw hr hwsig{1} hrsig{1} hthsig{1}], ...
+       'White', 'Red', 'White 95', 'Red 95', 'Theory 95');
+
+set(gca, 'XTickMode', 'auto');
+ylabel('Counts');
+xlabel('Correlation coefficient');
+title(['Num MC iterations = ' num2str(numMC) ' | Time series length = ' num2str(numel)]);
+beautify;
+export_fig images/monte-carlo-corr-coeff-white-red.png
+toc;
