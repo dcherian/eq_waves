@@ -3,6 +3,8 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
 
   ticstart = tic;
 
+  disp('Inferring mode shapes');
+
   if ~exist('data', 'var'), error('Provide data.'); end
 
   nlon = length(data.lon);
@@ -14,11 +16,6 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
   if ~exist('latrange', 'var')
       latrange = 1:nlat;
   end
-
-  if ~exist('flat-bot-modes.mat', 'file')
-      TheoreticalModes;
-  end
-  load('flat-bot-modes');
 
   modes.lon = data.lon;
   modes.lat = data.lat;
