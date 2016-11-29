@@ -3,6 +3,8 @@
 % well I do at getting things back out.
 clear;
 
+plotfigures = 0;
+
 [opt, plotopt] = DefaultOptions;
 
 opt.rednoise = 1;
@@ -25,15 +27,16 @@ freq = [0.08 0.1 0.145 0.2];
 
 opt.filt.cutoff = 2./[0.14 0.16];
 
+rednoiseamp = 2e2;
 if opt.rednoise
     for ff=freq([2 4]) % mode 1
         tseries(:,1) = tseries(:,1) + ...
-            1e2 * rednoise([ntimes 1]) + ...
+            rednoiseamp * rednoise([ntimes 1]) + ...
             1 * rednoise([ntimes 1]).*sin(2*pi*ff*[0:ntimes-1]');
     end
     for ff=freq([1 3]) % mode 2
         tseries(:,2) = tseries(:,2) + ...
-            1e2 * rednoise([ntimes 1]) + ...
+            rednoiseamp * rednoise([ntimes 1]) + ...
             1 * rednoise([ntimes 1]).*sin(2*pi*ff*[0:ntimes-1]');
     end
 else
@@ -50,6 +53,14 @@ else
 end
 tseries = 4 * tseries./max(tseries(:));
 
+% add gaps
+gapstart = randi([40, 100], 5);
+gaplength = randi([200, 1500], 5);
+
+for ii=1:length(gapstart)
+    tseries(gapstart(ii):gapstart(ii)+gaplength(ii)) = NaN;
+end
+
 % Use amplitude and mode shape to generate T,S time series
 Tsamp = nan([ntimes length(zsamp)]);
 for zz=1:length(zsamp)
@@ -62,11 +73,13 @@ end
 % calculate dynamic height time series.
 dynht = trapz(zsamp, sw_svan(Ssamp, Tsamp, sw_pres(zsamp, 0)), 2);
 
-figure('Position', [360 156 800 600]);
-hax(1) = subplot(121);
-subplot(hax(1));
-PlotSpectrum(dynht);
-PlotSpectrum(Tsamp(:,5));
+if plotfigures
+    figure('Position', [360 156 800 600]);
+    hax(1) = subplot(121);
+    subplot(hax(1));
+    PlotSpectrum(dynht);
+    PlotSpectrum(Tsamp(:,5));
+end
 
 %% BandPass filtering
 dynht = BandPass(dynht, opt.filt);
@@ -76,11 +89,12 @@ if opt.filter_temp
     end
 end
 
-subplot(hax(1));
-PlotSpectrum(dynht);
-PlotSpectrum(Tsamp(:,5));
-ylim([1e-30 1e3])
-
+if plotfigures
+    subplot(hax(1));
+    PlotSpectrum(dynht);
+    PlotSpectrum(Tsamp(:,5));
+    ylim([1e-30 1e3])
+end
 %% total least squares and plot
 [infer_mode, infer_mode_error, corrcoeff, dof] = ...
     DoRegression(dynht', Tsamp', opt);
@@ -102,11 +116,12 @@ flatbot.IdealTempMode(1,1,:,:) = Tmode; %./Tmode(zfull == zsamp(1));
 flatbot.zTmode = -zfull;
 
 % Plot mode structure
-hax(2) = subplot(122);
-handles = PlotMode({modes; flatbot}, 1, 1, plotopt, hax(2));
-title('Test with synthetic time series');
-handles.hleg = legend('Location', 'SouthEast');
-handles.hleg.Box = 'off';
-
-xlim([-1.2 1.2]);
-ylim([-750 0]);
+if plotfigures
+    hax(2) = subplot(122);
+    handles = PlotMode({modes; flatbot}, 1, 1, plotopt, hax(2));
+    title('Test with synthetic time series');
+    handles.hleg = legend('Location', 'SouthEast');
+    handles.hleg.Box = 'off';
+    xlim([-1.2 1.2]);
+    ylim([-750 0]);
+end
