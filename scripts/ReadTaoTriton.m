@@ -6,6 +6,7 @@ function [tao] = ReadTaoTriton(lonrange, latrange)
 
     datadir = '../data/';
 
+    tao.name = 'tao';
     tao.lat = [8 5 2 0 -2 -5 -8];
     % modes.lon = [95 110 125 140 137 147 155 156 165 170 180]; % W
     % edited lon values to make neater subplots ...

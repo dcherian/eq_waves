@@ -115,7 +115,8 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
                   'Tstd = standard dev of temp time series at depth'];
 
   % don't overwrite if *not* inferring at all locations
-  if isequal(lonrange, 1:nlon) & isequal(latrange, 1:nlat)
+  if strcmpi(data.name, 'tao') & ...
+          isequal(lonrange, 1:nlon) & isequal(latrange, 1:nlat)
       hash = githash([mfilename('fullpath') '.m']);
       disp('Saving mode structures');
       save([opt.name '-' opt.filt.window '.mat'], ...
