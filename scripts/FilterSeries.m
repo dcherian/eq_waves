@@ -20,7 +20,7 @@ function [out] = FilterSeries(in, opt)
         % a) 1./opt.cutoff = (desired freq)/2
         %      as designed for other windows.
         % b) (sampling freq/2) = 1/2 cpd.
-        [b,a] = butter(4, sort(2./opt.cutoff/(1/2)), 'bandpass');
+        [b,a] = butter(1, sort(2./opt.cutoff/(1/2)), 'bandpass');
     end
 
     start = 1;
@@ -34,15 +34,19 @@ function [out] = FilterSeries(in, opt)
         % This makes the filtering work better
         % and analysis less sensitive to choice of window.
         if strcmpi(opt.window, 'butterworth')
-            out(range) = filter(b, a, in(range)-nanmean(in(range)));
+            out(range) = filter(b, a, in(range) - nanmean(in(range)));
+
+            % NaN out contaminated edges
+            out(range(1) : min(100, length(in))) = NaN;
+            out( max(1,range(end)-100-1) : range(end)) = NaN;
         else
             out(range) = smooth_1d(in(range) - nanmean(in(range)), opt.N, ...
                                    opt.halfdef, opt.window);
-        end
 
-        % NaN out contaminated edges
-        out(range(1) : min(range(1)+ceil(opt.N)+1, length(in))) = NaN;
-        out( max(1,range(end)-ceil(opt.N)-1) : range(end)) = NaN;
+            % NaN out contaminated edges
+            out(range(1) : min(range(1)+ceil(opt.N)+1, length(in))) = NaN;
+            out( max(1,range(end)-ceil(opt.N)-1) : range(end)) = NaN;
+        end
 
         % set start for next iteration to be end of current gap.
         start = gapend(ii)+1;
