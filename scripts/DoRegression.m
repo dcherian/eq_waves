@@ -88,8 +88,9 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
         corrcoeff(ii) = min(min( ...
             corrcoef(dht(mask)', T(mask)')));
 
-        if abs(corrcoeff(ii)) <= corr_sig(dof(ii)-2, 0.95)
-            % 0 means insignificant, NaN means no data.
+        if abs(corrcoeff(ii)) <= 0.12
+            % corrcoeff = 0 means insignificant
+            % corrcoeff = NaN means no data.
             corrcoeff(ii) = 0;
             infer_mode(ii, 2) = NaN;
             infer_mode_error(ii, 2) = NaN;
