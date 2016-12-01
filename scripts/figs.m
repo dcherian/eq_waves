@@ -382,7 +382,7 @@ rsort = sort(abs(rred));
 sigred = rsort(floor(0.975*numMC));
 disp(['white: ' num2str(sigwhite, '%.4f')]);
 disp(['red: ' num2str(sigred, '%.4f')]);
-corr_sig(numel, 0.95)
+corr_sig(numel-2, 0.95)
 
 clf
 hr = histogram(rred, 20, 'EdgeColor', 'none', 'FaceAlpha', 0.5);
@@ -390,7 +390,7 @@ hold on;
 hw = histogram(rwhite, 20, ...
                'FaceColor', 'w');
 
-hthsig = linex([-1 1]*corr_sig(numel, 0.95));
+hthsig = linex([-1 1]*corr_sig(numel-2, 0.95));
 hwsig = linex([-1 1]*sigwhite, [], 'k');
 hrsig = linex([-1 1]*sigred, [], 'r');
 
@@ -404,3 +404,28 @@ title(['Num MC iterations = ' num2str(numMC) ' | Time series length = ' num2str(
 beautify;
 export_fig images/monte-carlo-corr-coeff-white-red.png
 toc;
+
+%%
+opt = DefaultOptions;
+in = synthetic_timeseries_known_spectrum(1e5, 1, 1e-6, -5);
+figure;
+hax(1) = subplot(211);
+plot(in);
+hax(2) = subplot(212);
+plot(BandPass(in, opt.filt));
+linkaxes(hax, 'x');
+
+%% Butterworth filter step response
+opt = DefaultOptions;
+figure; hold on;
+for ii=1:4
+    [b,a] = butter(ii, sort(2./opt.filt.cutoff/(1/2)), 'bandpass');
+    [h,t] = stepz(b,a);
+    hplt(ii) = plot(t,h+(ii-1)/6);
+end
+uistack(hplt(1), 'top')
+legend('1', '2', '3', '4', 'Location', 'SouthEast')
+title('(1,2,3,4) order butterworth filter step response uzing stepz')
+resizeImageForPub('portrait');
+beautify([11 12 13])
+export_fig images/butterworth-step-response.png
