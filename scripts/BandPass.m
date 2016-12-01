@@ -15,6 +15,7 @@ function [out] = BandPass(in, opt)
 
     if opt.debugflag
         figure;
+        subplot(211);
         hin = PlotSpectrum(in);
         hin.LineWidth = 1;
         hold on;
@@ -23,10 +24,15 @@ function [out] = BandPass(in, opt)
         if ~strcmpi(opt.window, 'butterworth')
             PlotSpectrum(low*1);
             PlotSpectrum(hi*1);
+        else
+            opt.cutoff = opt.cutoff/2;
         end
         legend('input', 'out', 'low-freq', 'high-freq');
         uistack(hout, 'top');
         linex(1./opt.cutoff);
         title(num2str(opt.cutoff));
+        subplot(212);
+        plot(out);
+        title('Filtered timeseries');
     end
 end
