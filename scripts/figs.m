@@ -78,7 +78,7 @@ for ii=1:2
 
     %linex(1./filt.cutoff);
     legend('raw dyn ht', 'rect filt', 'gauss filt', 'parzen filt', ...
-           'butterworth', 'Location', 'SouthWest');
+    'butterworth', 'Location', 'SouthWest');
     title(['dyn ht at (' num2str(lon) 'E, ' ...
            num2str(lat) 'N) | [' num2str(sort(filt.cutoff), '%.2f ') ']']);
     beautify;
@@ -134,10 +134,10 @@ filt.debugflag = 0;
 nsmooth = 5;
 tvec = [1:8000];
 ts = sin(2*pi*0.08*tvec) ...
-     + sin(2*pi*0.1*tvec) ...
-     + sin(2*pi*0.15 * tvec) ...
-     + sin(2*pi*0.2 * tvec) ...
-     + rand(size(tvec)) + 1;
++ sin(2*pi*0.1*tvec) ...
++ sin(2*pi*0.15 * tvec) ...
++ sin(2*pi*0.2 * tvec) ...
++ rand(size(tvec)) + 1;
 
 figure;
 hts = PlotSpectrum(ts);
@@ -158,8 +158,8 @@ uistack(hbutter, 'bottom');
 
 %linex(1./filt.cutoff);
 legend('synthetic series', 'rect filt', ...
-       'gauss filt', 'butterworth', 'parzen filt', ...
-       'Location','NorthWest');
+'gauss filt', 'butterworth', 'parzen filt', ...
+'Location','NorthWest');
 title([num2str(nsmooth) ' point smoothed | [' ...
        num2str(filt.cutoff) ']']);
 beautify;
@@ -233,14 +233,14 @@ set(hax, 'XAxisLocation', 'top');
 
 for ii=1:length(lonidx)
     label = sprintf('(%dE, %dN)', modes.lon(lonidx(ii)), ...
-                    modes.lat(latidx(ii)));
+    modes.lat(latidx(ii)));
     axes(hax(1)); hold on;
     h(ii) = plot(data.Twoa{lonidx(ii), latidx(ii)}, -data.Zwoa, '.-', ...
-                 'MarkerSize', 16, 'DisplayName', label);
+    'MarkerSize', 16, 'DisplayName', label);
 
     axes(hax(2)); hold on;
     plot(gradient(data.Twoa{lonidx(ii), latidx(ii)}, -data.Zwoa), -data.Zwoa, '.-', ...
-         'MarkerSize', 16);
+    'MarkerSize', 16);
 end
 linkaxes(hax, 'y');
 ylim([-800 0]);
@@ -285,21 +285,21 @@ mm = 6; nn = 7;
 PlotMode('bc2m1-rect', mm, nn);
 gauss = load('bc2m1-gauss.mat');
 errorbar(gauss.modes.InferredMode{mm,nn}, ...
-         gauss.modes.depth{mm,nn} * -1, ...
-         gauss.modes.InferredModeError{mm,nn}, ...
-         'horizontal', ...
-         'Marker', '.', 'MarkerSize', 12, ...
-         'LineStyle', 'none', 'LineWidth', linewidth, ...
-         'DisplayName', 'gauss');
+gauss.modes.depth{mm,nn} * -1, ...
+gauss.modes.InferredModeError{mm,nn}, ...
+'horizontal', ...
+'Marker', '.', 'MarkerSize', 12, ...
+'LineStyle', 'none', 'LineWidth', linewidth, ...
+'DisplayName', 'gauss');
 
 butter = load('bc2m1-butterworth.mat');
 errorbar(butter.modes.InferredMode{mm,nn}, ...
-         butter.modes.depth{mm,nn} * -1, ...
-         butter.modes.InferredModeError{mm,nn}, ...
-         'horizontal', ...
-         'Marker', '.', 'MarkerSize', 12, ...
-         'LineStyle', 'none', 'LineWidth', linewidth, ...
-         'DisplayName', 'butterworth');
+butter.modes.depth{mm,nn} * -1, ...
+butter.modes.InferredModeError{mm,nn}, ...
+'horizontal', ...
+'Marker', '.', 'MarkerSize', 12, ...
+'LineStyle', 'none', 'LineWidth', linewidth, ...
+'DisplayName', 'butterworth');
 
 hleg = legend('Location', 'SouthEast');
 hleg.String{1} = 'rect';
@@ -330,7 +330,7 @@ figure; hold on;
 for ii=1:length(modes.lon)
     for jj=1:length(modes.lat)
         plot(modes.InferredModeOLS{ii,jj}, modes.corr{ii,jj}, ...
-             'k.');
+        'k.');
         if any(modes.InferredModeOLS{ii,jj} > 1)
             disp([ii jj])
         end
@@ -388,14 +388,14 @@ clf
 hr = histogram(rred, 20, 'EdgeColor', 'none', 'FaceAlpha', 0.5);
 hold on;
 hw = histogram(rwhite, 20, ...
-               'FaceColor', 'w');
+'FaceColor', 'w');
 
 hthsig = linex([-1 1]*corr_sig(numel-2, 0.95));
 hwsig = linex([-1 1]*sigwhite, [], 'k');
 hrsig = linex([-1 1]*sigred, [], 'r');
 
 legend([hw hr hwsig{1} hrsig{1} hthsig{1}], ...
-       'White', 'Red', 'White 95', 'Red 95', 'Theory 95');
+'White', 'Red', 'White 95', 'Red 95', 'Theory 95');
 
 set(gca, 'XTickMode', 'auto');
 ylabel('Counts');
@@ -430,3 +430,53 @@ resizeImageForPub('portrait');
 beautify([11 12 13])
 
 export_fig images/butterworth-step-response.png
+
+
+%% compare windows
+plotopt.window = 'rect';
+PlotModeMap(plotopt);
+export_fig -r300 images/09-28-bc2m1-rect.png
+
+plotopt.window = 'gauss';
+PlotModeMap(plotopt);
+
+export_fig -r300 images/09-28-bc2m1-gauss.png
+
+ylim([-500 0]);
+export_fig -r300 images/09-28-bc2m1-top500.png
+
+%% bc2m1 with different filtering
+clear opt
+
+% main options
+opt.debug = 0; % debugging spectrum plots
+opt.filter_temp = 1; % filter temperature also?
+
+opt.filt.halfdef = 'power'; % how is filt.N defined?
+opt.filt.N = NaN; % will be set based on cutoff later.
+opt.filt.debugflag = 0; % debugging spectrum plots in BandPass()
+opt.name = 'bc2m1';
+opt.filt.cutoff = 2./[0.135 0.155]; % (days) band pass filter windows
+
+opt.filt.window = 'rect';
+InferModeShape(opt);
+
+opt.filt.window = 'gauss';
+InferModeShape(opt);
+
+opt.filt.window = 'butterworth';
+InferModeShape(opt);
+
+%% bc2m2
+
+opt.name = 'bc2m2';
+opt.filt.cutoff = 2./[0.19 0.23]; % (days) band pass filter windows
+InferModeShape(opt);
+
+plotopt.name = opt.name;
+plotopt.nmode = [1 2]; % which theoretical mode am I looking for?
+plotopt.plotcorr = 0;
+plotopt.plotstd = 0;
+PlotModeMap(plotopt);
+
+export_fig -r300 images/09-24-bc2m2.png
