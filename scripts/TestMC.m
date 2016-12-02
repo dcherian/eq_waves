@@ -76,7 +76,7 @@ function [] = TestMC(spectralSlope, DoBandPass)
     subplot(222)
     histogram(r, nbins, 'Normalization', 'countdensity', ...
               'EdgeColor', 'none');
-    linex(calc95(r), 'r');
+    linex(calc95(r), [], 'r');
     title('corr. coeff');
     beautify;
 

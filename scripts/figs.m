@@ -407,7 +407,7 @@ toc;
 
 %%
 opt = DefaultOptions;
-in = synthetic_timeseries_known_spectrum(1e5, 1, 1e-6, -5);
+in = synthetic_timeseries_known_spectrum(1e5, 1, 1e-6, -5)/1e5;
 figure;
 hax(1) = subplot(211);
 plot(in);
@@ -428,4 +428,5 @@ legend('1', '2', '3', '4', 'Location', 'SouthEast')
 title('(1,2,3,4) order butterworth filter step response uzing stepz')
 resizeImageForPub('portrait');
 beautify([11 12 13])
+
 export_fig images/butterworth-step-response.png

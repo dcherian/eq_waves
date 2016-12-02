@@ -8,7 +8,7 @@ plotopt.nmode = [1 2];
 tao = ReadTaoTriton;
 InferModeShape(opt, tao);
 PlotModeMap(plotopt);
-export_fig  -p0.005 -nofontswap -depsc images/29-11-bc2m1.pdf
+export_fig  -p0.005 -nofontswap -depsc images/01-12-bc2m1.pdf
 
 %% compare windows
 plotopt.window = 'rect';
@@ -17,6 +17,7 @@ export_fig -r300 images/09-28-bc2m1-rect.png
 
 plotopt.window = 'gauss';
 PlotModeMap(plotopt);
+
 export_fig -r300 images/09-28-bc2m1-gauss.png
 
 ylim([-500 0]);
