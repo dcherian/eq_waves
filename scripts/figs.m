@@ -1,3 +1,16 @@
+%% test InterpGapLength
+mm = 9; nn = 4;
+[opt, plotopt] = DefaultOptions;
+modes = InferModeShape(opt, tao, mm, nn);
+plotopt.plotWTLS = 0;
+PlotMode(modes, mm, nn, plotopt);
+
+opt.InterpGapLength = 0;
+modes = InferModeShape(opt, tao, mm, nn);
+PlotMode(modes, mm, nn, plotopt);
+
+linkfig;
+
 %% typical mode shapes
 
 woa = load('../data/woa05.mat');
