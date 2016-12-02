@@ -7,10 +7,10 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
 
     nz = size(Tinput, 1);
 
-    infer_mode = nan([nz 1]);
-    infer_mode_error = infer_mode;
-    corrcoeff = infer_mode;
-    dof = infer_mode;
+    infer_mode = nan([nz 2]);
+    infer_mode_error = nan([nz 2]);
+    corrcoeff = nan([nz 1]);
+    dof = nan([nz 1]);
 
     for ii = 1:nz
         dht = dhtinput;
@@ -21,9 +21,7 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
         T(~mask) = NaN;
         dht(~mask) = NaN;
 
-        if all(mask == 0)
-            infer_mode(ii) = NaN;
-            infer_mode_error(ii,1) = NaN;
+        if all(mask == 0) % all NaNs
             continue;
         end
 
