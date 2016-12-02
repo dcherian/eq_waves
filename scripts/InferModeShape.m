@@ -28,6 +28,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           end
 
           dht = data.dht{mm,nn} - nanmean(data.dht{mm,nn});
+          dht = fill_gap(dht, 'linear', opt.InterpGapLength);
           % First do Bandpass filtering
           dhtfilt = BandPass(dht, opt.filt);
 
@@ -42,6 +43,8 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           % iterate over depths and filter temperature
           clear Tfilt
           for ii = 1:length(modes.depth{mm,nn})
+              data.T{mm,nn}(ii,:) = fill_gap(data.T{mm,nn}(ii,:), ...
+                                             'linear', opt.InterpGapLength);
               if opt.filter_temp
                   % band pass filter temperature data
                   Tfilt(ii,:) = BandPass(data.T{mm,nn}(ii,:), opt.filt);

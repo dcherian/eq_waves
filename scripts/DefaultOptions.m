@@ -11,6 +11,7 @@ function [opt, plotopt] = DefaultOptions()
     opt.filter_temp = 1;
     opt.debug = 0;  % debugging spectrum plots
     opt.TagainstDHT = 1; % T on y-axis of regression?
+    opt.InterpGapLength = 5; % gap length over which to linearly interpolate
 
     plotopt.nmode = [2]; % which theoretical mode am I looking for?
     plotopt.plotcorr = 1;
