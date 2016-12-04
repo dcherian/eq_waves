@@ -560,3 +560,17 @@ yy = BandPass(yy, opt.filt);
 subplot(122);
 plot(xx, yy, '*');
 [coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
+
+%% correlation structure and filtering
+
+figure('Position', [146 1030 560 573]);
+hax(1) = subplot(211);
+CorrFilter(0, hax(1));
+beautify([13 14 15]);
+hax(2) = subplot(212);
+CorrFilter(-3, hax(2));
+beautify([13 14 15]);
+linkaxes(hax, 'x');
+xlim([-1 1]*150)
+
+export_fig images/correlation-structure-filtering.png
