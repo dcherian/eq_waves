@@ -17,25 +17,31 @@
 
 %slope = 0.15;
 %intercept = 0.2;
-function [] = TestMC(spectralSlope, DoBandPass)
+
+function [mdist, m] = TestMC(spectralSlope, DoBandPass, makePlot, len)
+
+    numMC = 1e4;
 
     if ~exist('spectralSlope', 'var'), spectralSlope = -3; end
     if ~exist('DoBandPass', 'var'), DoBandPass = 1; end
-
-    len = 5e3; % number of data points
+    if ~exist('makePlot', 'var'), makePlot = 0; end
+    if ~exist('len', 'var'), len = 5e3; end
 
     xx = synthetic_timeseries_known_spectrum(len, 1, 1, spectralSlope);
     opt = DefaultOptions;
     if DoBandPass
-        figure;
-        subplot(211); plot(xx);
+        if makePlot
+            figure;
+            subplot(211); plot(xx);
+        end
         xx = BandPass(xx, opt.filt);
-        subplot(212); plot(xx);
+        if makePlot
+            subplot(212); plot(xx);
+        end
         xx = cut_nan(xx - nanmean(xx));
     end
 
     tic;
-    numMC = 1e4;
     clear c m r
     for ii=1:numMC
         % xnoise = 0;
@@ -50,9 +56,14 @@ function [] = TestMC(spectralSlope, DoBandPass)
             yy = cut_nan(yy - nanmean(yy));
         end
 
-        coeff = dcregress(xx, yy, [], 0, 0, 0);
+        [coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0);
         c(ii) = coeff(1);
         m(ii) = coeff(2);
+
+        % t hypothesis test
+        % (b_1 - β_{10})/se(b_1)
+        % Draper & Smith pg. 36 eqn. (1.4.9)
+        mdist(ii) = (m(ii)-0)/err(2);
 
         rmat = corrcoef(cut_nan(xx), cut_nan(yy));
         r(ii)= rmat(1,2);
@@ -66,37 +77,50 @@ function [] = TestMC(spectralSlope, DoBandPass)
     %       '] | intercept = [' num2str([coeff(1)-conf(1) coeff(1)+conf(1)], ...
     %                                   '%.3f ') ']']);
 
-    nbins = 40;
-    figure;
-    subplot(221)
-    plot(xx,yy, '*');
-    title(['Spectral slope = ' num2str(spectralSlope)]);
-    beautify;
+    if makePlot
+        nbins = 40;
+        figure;
+        subplot(221)
+        plot(xx,yy, '*');
+        title(['Spectral slope = ' num2str(spectralSlope)]);
+        beautify;
 
-    subplot(222)
-    histogram(r, nbins, 'Normalization', 'countdensity', ...
-              'EdgeColor', 'none');
-    linex(calc95(r), [], 'r');
-    title('corr. coeff');
-    beautify;
+        subplot(222)
+        histogram(r, nbins, 'Normalization', 'countdensity', ...
+                  'EdgeColor', 'none');
+        linex(calc95(r), [], 'r');
+        title('corr. coeff');
+        beautify;
 
-    subplot(223);
-    hsl = histogram(m, nbins, 'Normalization', 'countdensity', ...
-                    'EdgeColor', 'none');
-    xbin = hsl.BinEdges;
-    %linex(slope, [], 'k')
-    %linex([coeff(2) coeff(2)-conf(2) coeff(2)+conf(2)]);
-    linex(calc95(m), [], 'r');
-    title('slope');
-    beautify;
+        subplot(223);
+        hsl = histogram(m, nbins, 'Normalization', 'countdensity', ...
+                        'EdgeColor', 'none');
+        xbin = hsl.BinEdges;
+        %linex(slope, [], 'k')
+        %linex([coeff(2) coeff(2)-conf(2) coeff(2)+conf(2)]);
+        linex(calc95(m), [], 'r');
+        title('slope');
+        beautify;
 
-    subplot(224);
-    histogram(c, nbins, 'Normalization', 'countdensity', 'EdgeColor', 'none');
-    %linex(intercept, [], 'k');
-    %linex([coeff(1) coeff(1)-conf(1) coeff(1)+conf(1)]);
-    linex(calc95(c), [], 'r');
-    title('intercept');
-    beautify;
+        subplot(224);
+        histogram(c, nbins, 'Normalization', 'countdensity', 'EdgeColor', 'none');
+        %linex(intercept, [], 'k');
+        %linex([coeff(1) coeff(1)-conf(1) coeff(1)+conf(1)]);
+        linex(calc95(c), [], 'r');
+        title('intercept');
+        beautify;
 
-    resizeImageForPub('portrait');
-    export_fig images/monte-carlo-regression--3.png
+        FitDistrib = allfitdist(mdist, 'PDF');
+        title(['Spectral Slope = ' num2str(spectralSlope) ' | DoBandPass ' ...
+               '= ' num2str(DoBandPass)]);
+    else
+        FitDistrib = allfitdist(mdist);
+    end
+
+    % filename = ['MC-slope-' num2str(spectralSlope)];
+    % if DoBandPass
+    %     filename = [filename '-BandPass'];
+    % end
+
+
+    % save(filename);

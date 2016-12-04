@@ -493,3 +493,70 @@ plotopt.plotstd = 0;
 PlotModeMap(plotopt);
 
 export_fig -r300 images/09-24-bc2m2.png
+
+%% monte carlo regression slope
+
+len = 5000;
+
+% unfiltered white noise
+disp('White noise')
+[mWhite, slWhite] = TestMC(0,0,0,len);
+fitWhitet = fitdist(mWhite', 'tlocationscale')
+fitWhiteg = fitdist(mWhite', 'normal')
+% this should give standard t-values for large degrees of freedom
+%calc95(mWhite)
+%tinv(0.025, len)
+
+% band passed white noise
+disp('Filtered white noise')
+[mWhiteFilter, slWhiteFilter] = TestMC(0,1,0);
+fitWhiteFiltert = fitdist(mWhiteFilter', 'tlocationscale')
+fitWhiteFilterg = fitdist(mWhiteFilter', 'normal')
+
+% red noise
+disp('Red noise')
+mRed = TestMC(-5,0);
+fitRedt = fitdist(mRed', 'tlocationscale')
+fitRedg = fitdist(mRed', 'normal')
+
+% band passed red noise
+disp('Filtered red noise:')
+mRedFilter = TestMC(-5, 1);
+fitRedFiltert = fitdist(mRedFilter', 'tlocationscale')
+fitRedFilterg = fitdist(mRedFilter', 'normal')
+
+%%
+nbins = 40;
+
+figure;
+histogram(slWhiteFilter, nbins, 'FaceColor', [1 1 1]*0.25);
+hold on
+histogram(slWhite, nbins, 'FaceColor', [1 1 1]);
+
+figure;
+cla;
+histogram(mWhiteFilter, nbins, 'FaceColor', [1 1 1]*0.25, ...
+          'EdgeColor', 'none');
+hold on;
+histogram(mWhite, nbins, 'FaceColor', [1 1 1], ...
+          'EdgeColor', 'none');
+histogram(mRed, nbins, 'EdgeColor', 'none')
+histogram(mRedFilter, nbins, 'EdgeColor', 'none')
+legend('Filtered white noise', 'White noise')
+
+%% white noise Filtering
+opt = DefaultOptions;
+
+xx = synthetic_timeseries_known_spectrum(len, 1, 1, -3);
+yy = synthetic_timeseries_known_spectrum(len, 1, 1, 0);
+
+figure;
+subplot(121);
+plot(xx, yy, '*');
+[coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
+
+xx = BandPass(xx, opt.filt);
+yy = BandPass(yy, opt.filt);
+subplot(122);
+plot(xx, yy, '*');
+[coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
