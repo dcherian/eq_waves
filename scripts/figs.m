@@ -500,30 +500,39 @@ len = 5000;
 
 % unfiltered white noise
 disp('White noise')
-[mWhite, slWhite] = TestMC(0,0,0,len);
-fitWhitet = fitdist(mWhite', 'tlocationscale')
-fitWhiteg = fitdist(mWhite', 'normal')
+[mWhite, slWhite, rWhite, wWhite] = TestMC(0,0,0,len);
+fitWhiter = fitdist(wWhite, 'normal')
+rdof = 1./fitWhiter.sigma^2+3
+fitWhitet = fitdist(mWhite, 'tlocationscale')
+fitWhiteg = fitdist(mWhite, 'normal')
 % this should give standard t-values for large degrees of freedom
 %calc95(mWhite)
 %tinv(0.025, len)
 
 % band passed white noise
 disp('Filtered white noise')
-[mWhiteFilter, slWhiteFilter] = TestMC(0,1,0);
-fitWhiteFiltert = fitdist(mWhiteFilter', 'tlocationscale')
+[mWhiteFilter, slWhiteFilter, rWhiteFilter, wWhiteFilter] = TestMC(0,1,0);
+fitWhiteFilterr = fitdist(wWhiteFilter, 'normal')
+rdof = 1./fitWhiteFilterr.sigma^2+3
+fitWhiteFiltert = fitdist(mWhiteFilter, 'tlocationscale')
+fitWhiteFilterr = fitdist(wWhiteFilter, 'normal')
 fitWhiteFilterg = fitdist(mWhiteFilter', 'normal')
 
 % red noise
 disp('Red noise')
-mRed = TestMC(-5,0);
-fitRedt = fitdist(mRed', 'tlocationscale')
-fitRedg = fitdist(mRed', 'normal')
+[mRed, slRed, rRed, wRed] = TestMC(-3,0);
+fitRedr = fitdist(wRed, 'normal')
+rdof = 1./fitRedr.sigma^2+3
+fitRedt = fitdist(mRed, 'tlocationscale')
+fitRedg = fitdist(mRed, 'normal')
 
 % band passed red noise
 disp('Filtered red noise:')
-mRedFilter = TestMC(-5, 1);
-fitRedFiltert = fitdist(mRedFilter', 'tlocationscale')
-fitRedFilterg = fitdist(mRedFilter', 'normal')
+[mRedFilter, slRedFilter, rRedFilter, wRedFilter] = TestMC(-3, 1);
+fitRedFilterr = fitdist(wRedFilter, 'normal')
+rdof = 1./fitRedFilterr.sigma^2+3
+fitRedFiltert = fitdist(mRedFilter, 'tlocationscale')
+fitRedFilterg = fitdist(mRedFilter, 'normal')
 
 %%
 nbins = 40;
@@ -551,26 +560,34 @@ xx = synthetic_timeseries_known_spectrum(len, 1, 1, -3);
 yy = synthetic_timeseries_known_spectrum(len, 1, 1, 0);
 
 figure;
-subplot(121);
-plot(xx, yy, '*');
-[coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
+ subplot(121);
+ plot(xx, yy, '*');
+ [coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
 
-xx = BandPass(xx, opt.filt);
-yy = BandPass(yy, opt.filt);
-subplot(122);
-plot(xx, yy, '*');
-[coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
+ xx = BandPass(xx, opt.filt);
+ yy = BandPass(yy, opt.filt);
+ subplot(122);
+ plot(xx, yy, '*');
+ [coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
 
 %% correlation structure and filtering
 
-figure('Position', [146 1030 560 573]);
-hax(1) = subplot(211);
-CorrFilter(0, hax(1));
-beautify([13 14 15]);
-hax(2) = subplot(212);
-CorrFilter(-3, hax(2));
-beautify([13 14 15]);
-linkaxes(hax, 'x');
-xlim([-1 1]*150)
+ figure('Position', [146 1030 560 573]);
+ hax(1) = subplot(311);
+ CorrFilter(0, hax(1));
+ xlabel('');
+ beautify([13 14 15]);
 
-export_fig images/correlation-structure-filtering.png
+ hax(2) = subplot(312);
+ CorrFilter(-3, hax(2));
+ xlabel('');
+ beautify([13 14 15]);
+
+ hax(3) = subplot(313);
+ CorrFilter(-5, hax(3));
+ beautify([13 14 15]);
+
+ linkaxes(hax, 'x');
+ xlim([-1 1]*30)
+
+ export_fig -transparent images/correlation-structure-filtering.png
