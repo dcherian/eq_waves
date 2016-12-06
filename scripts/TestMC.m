@@ -49,7 +49,7 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
 
     c = nan([numMC 1]);
     m = c; r = c; mdist = c; rdist = c;
-    parfor ii=1:numMC
+    for ii=1:numMC
         % xnoise = 0;
         % yy = slope * (xx + xnoise) + intercept;
         % ynoise = 0.2*max(abs(yy))*whitenoise(size(yy));
@@ -79,7 +79,6 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
     % the variable rdist == w (bendat piersol eqn. 4.58) is
     % normally distributed with mean = 0 and σ²=1/(dof-3)
     rdist = 1/2*log((1+r)./(1-r));
-
 
     %[coeff, conf, dof] = dcregress(xx, yy, length(yy)-2, 0, 0);
     % disp(['actual: slope = ' num2str(slope, '%.3f') ' | intercept = ' ...
