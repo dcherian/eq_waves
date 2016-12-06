@@ -6,6 +6,11 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
   disp('Inferring mode shapes');
 
   if ~exist('data', 'var'), error('Provide data.'); end
+  if strcmpi(opt.name, 'montecarlo')
+      isMonteCarlo = 1;
+  else
+      isMonteCarlo = 0;
+  end
 
   nlon = length(data.lon);
   nlat = length(data.lat);
@@ -73,21 +78,32 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           Tstd = infer_mode;
 
           Tstd = nanstd(Tfilt(:,range)')';
-          [infer_mode, infer_mode_error, corrcoeff, dof] ...
+          [infer_mode, infer_mode_error, corrcoeff, dof, stderr] ...
               = DoRegression(dhtfilt, Tfilt(:, range), opt);
 
-          % normalize mode shapes
-          imnorm = findNormalization(infer_mode(:,1));
+          % normalize mode shapes if not monte-carlo
+          % first OLS
+          if isMonteCarlo
+              imnorm = 1;
+          else
+              imnorm = findNormalization(infer_mode(:,1));
+          end
           modes.InferredModeOLS{mm,nn} = infer_mode(:,1)./imnorm;
           modes.InferredModeErrorOLS{mm,nn} = ...
               infer_mode_error(:,1)./imnorm;
+          modes.StdErrorOLS{mm,nn} = stderr./imnorm;
 
-          imnorm = findNormalization(infer_mode(:,2));
+          % now WTLS
+          if isMonteCarlo
+              imnorm = 1;
+          else
+              imnorm = findNormalization(infer_mode(:,2));
+          end
           modes.InferredModeWTLS{mm,nn} = infer_mode(:,2)./imnorm;
           modes.InferredModeErrorWTLS{mm,nn} = ...
               infer_mode_error(:,2)./imnorm;
 
-          if any(cut_nan(modes.InferredModeOLS{mm,nn}) > 1)
+          if ~isMonteCarlo & any(cut_nan(modes.InferredModeOLS{mm,nn}) > 1)
               warning('OLS regression ampl > 1');
               keyboard;
           end
@@ -115,7 +131,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
                    'Tstd = standard dev of temp time series at depth'];
 
   % don't overwrite if *not* inferring at all locations
-  if strcmpi(data.name, 'tao') & ...
+  if ~isMonteCarlo & ...
           isequal(lonrange, 1:nlon) & isequal(latrange, 1:nlat)
       hash = githash([mfilename('fullpath') '.m']);
       disp('Saving mode structures');

@@ -1,4 +1,4 @@
-function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
+function [infer_mode, infer_mode_error, corrcoeff, dof, stdError] = ...
         DoRegression(dhtinput, Tinput, opt)
 
     if ~exist('opt', 'var') | ~isfield(opt, 'debug')
@@ -11,6 +11,7 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
     infer_mode_error = nan([nz 2]);
     corrcoeff = nan([nz 1]);
     dof = nan([nz 1]);
+    stdError = dof;
 
     for ii = 1:nz
         dht = dhtinput;
@@ -63,7 +64,7 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
             rrwtls = mf_wtls(dht(1:Nsamp:end)', T(1:Nsamp:end)', ...
                              0.1, 0.01, 0);
 
-            [rrols([3 1]), rrols([4 2]), ~] = ...
+            [rrols([3 1]), rrols([4 2]), ~, stderr] = ...
                 dcregress(dht', T'-nanmean(T), dof(ii), [], 0);
         else
             rrwtls = mf_wtls(T(1:Nsamp:end)', dht(1:Nsamp:end)', ...
@@ -75,6 +76,7 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
 
         infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
         infer_mode_error(ii,1:2) = [rrols(2) rrwtls(2)];
+        stdError(ii) = stderr(2);
 
         % "Since the slope from the GMFR is simply a ratio of
         % variances, it is ``transparent'' to the
@@ -86,12 +88,15 @@ function [infer_mode, infer_mode_error, corrcoeff, dof] = ...
         corrcoeff(ii) = min(min( ...
             corrcoef(dht(mask)', T(mask)')));
 
-        if abs(corrcoeff(ii)) <= 0.12
-            % corrcoeff = 0 means insignificant
-            % corrcoeff = NaN means no data.
+        if ~strcmpi(opt.name, 'montecarlo')
+            if abs(corrcoeff(ii)) <= 0.12
+                % corrcoeff = 0 means insignificant
+                % corrcoeff = NaN means no data.
             corrcoeff(ii) = 0;
             infer_mode(ii, 2) = NaN;
             infer_mode_error(ii, 2) = NaN;
+
+            end
         end
     end
 end
