@@ -1,18 +1,3 @@
-
-%% figure out data frequency slopes
-% tao = ReadTaoTriton(11,4);
-
-% figure;
-% subplot(121)
-% hspec = PlotSpectrum(tao.dht{11,4});
-% PlotSpectrum(synthetic_timeseries_known_spectrum(length(tao.dht{11,4}),1,0.05,-2.4));
-% uistack(hspec, 'top');
-
-% subplot(122);
-% hspec = PlotSpectrum(tao.dht{11,4});
-% PlotSpectrum(synthetic_timeseries_known_spectrum(length(tao.dht{11,4}),1,0.05,-2));
-% uistack(hspec, 'top');
-
 %% Monte Carlo regression Slope
 
 %slope = 0.15;

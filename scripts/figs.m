@@ -528,7 +528,7 @@ fitRedg = fitdist(mRed, 'normal')
 
 % band passed red noise
 disp('Filtered red noise:')
-[mRedFilter, slRedFilter, rRedFilter, wRedFilter] = TestMC(-3, 1);
+[mRedFilter, slRedFilter, rRedFilter, wRedFilter] = TestMC(-2, 1);
 fitRedFilterr = fitdist(wRedFilter, 'normal')
 rdof = 1./fitRedFilterr.sigma^2+3
 fitRedFiltert = fitdist(mRedFilter, 'tlocationscale')
@@ -591,3 +591,40 @@ figure;
  xlim([-1 1]*30)
 
  export_fig -transparent images/correlation-structure-filtering.png
+
+ %% figure out data frequency slopes
+
+ SubsetLength = 256;
+ if ~exist('tao', 'var'), tao = ReadTaoTriton; end
+
+ Tslope = nan([11 7]);
+ for mm=1:11
+     for nn=1:7
+         if isempty(tao.dht{mm,nn}), continue; end
+
+         [Sdht, freq] = GappySpectrum(tao.dht{mm,nn}, SubsetLength);
+
+         St = nan([length(freq) size(tao.T{mm,nn}, 1)]);
+         for zz=1:size(tao.T{mm,nn}, 1)
+             try
+                 St(:,zz) = GappySpectrum(tao.T{mm,nn}(zz,:), SubsetLength);
+             catch ME
+                 St(:,zz) = NaN;
+             end
+         end
+
+         % avg over depth
+         St = nanmean(St, 2);
+
+         [coeff, conf] = dcregress(log(freq), log(St), length(freq), [], 0);
+         Tslope(mm,nn) = coeff(2);
+         [coeff, conf] = dcregress(log(freq), log(Sdht), length(freq), [], 0);
+         DHTslope(mm,nn) = coeff(2);
+     end
+ end
+
+ figure;
+ histogram(DHTslope);
+ hold on;
+ histogram(Tslope);
+ legend('Dyn ht', 'temp');
