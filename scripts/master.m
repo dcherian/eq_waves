@@ -8,4 +8,4 @@ tao = ReadTaoTriton;
 InferModeShape(opt, tao);
 PlotModeMap(plotopt);
 
-export_fig  -p0.005 -nofontswap -depsc images/02-12-bc2m1.pdf
+export_fig  -p0.005 -nofontswap -depsc images/12-07-bc2m1.pdf
