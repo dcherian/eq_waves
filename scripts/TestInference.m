@@ -3,11 +3,12 @@
 % well I do at getting things back out.
 clear;
 
-plotfigures = 0;
+plotfigures = 1;
 
 [opt, plotopt] = DefaultOptions;
 
 opt.rednoise = 1;
+opt.nullhyp = 1; % if 1, dynht is substituted with red noise
 opt.filter_temp = 1;
 plotopt.plotWTLS = 0;
 
@@ -27,7 +28,7 @@ freq = [0.08 0.1 0.145 0.2];
 
 opt.filt.cutoff = 2./[0.14 0.16];
 
-rednoiseamp = 2e2;
+rednoiseamp = 1e2;
 if opt.rednoise
     for ff=freq([2 4]) % mode 1
         tseries(:,1) = tseries(:,1) + ...
@@ -71,7 +72,11 @@ for zz=1:length(zsamp)
 end
 
 % calculate dynamic height time series.
-dynht = trapz(zsamp, sw_svan(Ssamp, Tsamp, sw_pres(zsamp, 0)), 2);
+if ~opt.nullhyp
+    dynht = trapz(zsamp, sw_svan(Ssamp, Tsamp, sw_pres(zsamp, 0)), 2);
+else
+    dynht = synthetic_timeseries_known_spectrum(length(Tsamp), 1, 1e-3, -2);
+end
 
 if plotfigures
     figure('Position', [360 156 800 600]);
