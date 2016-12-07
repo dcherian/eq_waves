@@ -628,3 +628,25 @@ figure;
  hold on;
  histogram(Tslope);
  legend('Dyn ht', 'temp');
+
+ %% monte carlo distribution fits
+
+ load montecarlo
+
+ figure;
+ hax(1) = subplot(121);
+ FitAndPlotDist(slfit, [], hax(1));
+ title('Regression slope');
+ pbaspect([1.3 1 1]);
+ beautify([12 14 15]);
+
+ hax(2) = subplot(122);
+ FitAndPlotDist(rfit, [], hax(2));
+ title({'Fisher transformed'; 'corr coeff'})
+ pbaspect([1.3 1 1])
+ xlim([-1 1]*0.2)
+ beautify([12 14 15]);
+
+ resizeImageForPub('portrait')
+
+ export_fig -r150 -transparent images/tao-monte-carlo-null-hyp-distributions.png
