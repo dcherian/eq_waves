@@ -75,7 +75,7 @@ function [infer_mode, infer_mode_error, corrcoeff, dof, stdError] = ...
         end
 
         infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
-        infer_mode_error(ii,1:2) = [rrols(2) rrwtls(2)];
+        infer_mode_error(ii,1:2) = [1.96*stderr(2)*opt.SlopeSigma rrwtls(2)];
         stdError(ii) = stderr(2);
 
         % "Since the slope from the GMFR is simply a ratio of
@@ -89,12 +89,12 @@ function [infer_mode, infer_mode_error, corrcoeff, dof, stdError] = ...
             corrcoef(dht(mask)', T(mask)')));
 
         if ~strcmpi(opt.name, 'montecarlo')
-            if abs(corrcoeff(ii)) <= 0.12
+            if abs(corrcoeff(ii)) <= opt.corr_sig
                 % corrcoeff = 0 means insignificant
                 % corrcoeff = NaN means no data.
-            corrcoeff(ii) = 0;
-            infer_mode(ii, 2) = NaN;
-            infer_mode_error(ii, 2) = NaN;
+                corrcoeff(ii) = 0;
+                infer_mode(ii, 2) = NaN;
+                infer_mode_error(ii, 2) = NaN;
 
             end
         end
