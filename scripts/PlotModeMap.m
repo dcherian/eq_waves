@@ -1,7 +1,7 @@
 % makes huge plot with a subplot for each point on the TAO array and plots
 % theoretical and inferred mode
 
-function [] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
+function [hax, supax] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
 
   if ~exist('lonrange', 'var')
       load([plotopt.name '-' plotopt.window '.mat']);
@@ -16,7 +16,7 @@ function [] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
   hash = githash([mfilename('fullpath') '.m']);
   insertAnnotation([plotopt.name ': ' hash]);
 
-  xlimits = [-0.5 1.2];
+  xlimits = [-0.3 1.2];
   ylimits = [-750 0];
   fontSize = [20 24 28];
   linewidth = 1;
@@ -41,6 +41,9 @@ function [] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
           ax = hax(subplot_index);
           ax.Color = 'none';
           ax.FontSize = fontSize(1);
+          ax.FontName = 'Times';
+          ax.YLabel.FontName = 'Times';
+          ax.XLabel.FontName = 'Times';
           ax.Box = 'off';
           ax.TickDir = 'out';
           ax.TickLength = [1 1]*0.06;
@@ -110,13 +113,17 @@ function [] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
       cutoff = opt.filt.cutoff;
   end
 
-  [ax,~] = suplabel([opt.name ' | ' ...
+  [supax,~] = suplabel([opt.name ' | ' ...
                      opt.filt.window ' [' num2str(sort(cutoff), ...
                                                   '%.1f ') ']'], 't');
-  ax.YLabel.String = 'Z (m)';
-  ax.YLabel.Visible = 'on';
-  ax.YLabel.Position(1) = -0.05;
-  ax.Title.FontSize = fontSize(3);
+  supax.YLabel.String = 'Z (m)';
+  supax.YLabel.Visible = 'on';
+  supax.YLabel.Position(1) = -0.01;
+  supax.Title.FontSize = fontSize(3);
+
+  supax.Title.FontName = 'Times';
+  supax.YLabel.FontName = 'Times';
+  supax.XLabel.FontName = 'Times';
 
   linkaxes(hax, 'xy');
   hax(nlon*(nlat-1)+ceil(nlon/2)).XAxis.Axle.VertexData(1) = 0;
