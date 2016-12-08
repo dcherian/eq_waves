@@ -37,7 +37,7 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         plotopt.plotcorr = 1;
         plotopt.ploterr = 1;
         plotopt.plotOLS = 1;
-        plotopt.plotWTLS = 1;
+        plotopt.plotWTLS = 0;
     else
         if ~isfield(plotopt, 'nmode')
             plotopt.nmode = [1 2];
@@ -71,8 +71,8 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
     hax.PlotBoxAspectRatio = [1 1 1]; %[0.5 1.2 0.2294];
 
     hold on;
-    % inferred mode from TAO data
 
+    % inferred mode from TAO data
     if plotopt.plotOLS
         handles.hols = plot(hax, modes.InferredModeOLS{mm,nn}, ...
                             modes.depth{mm,nn} * -1, ...
@@ -131,8 +131,8 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
     % temp std
     if plotopt.plotstd
         handles.hstd = ...
-            plot(hax, data.Tstd{mm,nn}./max(data.Tstd{mm,nn}), ...
-                 data.depth{mm,nn} * -1,'k', 'LineWidth', linewidth, ...
+            plot(hax, modes.Tstd{mm,nn}./nanmax(modes.Tstd{mm,nn}), ...
+                 modes.depth{mm,nn} * -1,'k.', 'LineWidth', linewidth, ...
                  'DisplayName', 'T_{std}');
     end
 
@@ -175,9 +175,13 @@ function [handle] = PlotErrorPatch(hax, depth, mode, error, color)
     mode = cut_nan(mode);
     error = cut_nan(error);
 
+    if ~isequal(size(depth), size(mode))
+        depth = depth';
+    end
+
     handle = patch(hax, ...
-                   [mode-error; flipud(mode+error); mode(1)-error(1)], ...
-                   [depth; flipud(depth); depth(1)], color, ...
+                   [mode-error; flip(mode+error); mode(1)-error(1)], ...
+                   [depth; flip(depth); depth(1)], color, ...
                    'EdgeColor', 'None', 'FaceAlpha', 0.3, ...
                    'HandleVisibility', 'off');
 end
