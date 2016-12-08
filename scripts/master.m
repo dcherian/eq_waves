@@ -6,6 +6,8 @@ plotopt.nmode = [1 2];
 
 tao = ReadTaoTriton;
 InferModeShape(opt, tao);
-PlotModeMap(plotopt);
+RunTests(opt);
+[hax, supax] = PlotModeMap(plotopt);
+supax.Title.Visible = 'off';
 
-export_fig  -p0.005 -nofontswap -depsc images/12-07-bc2m1.pdf
+export_fig -transparent -opengl -r150  -p0.005 -nofontswap -depsc images/12-08-bc2m1.png
