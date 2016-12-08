@@ -1,4 +1,4 @@
-function [infer_mode, infer_mode_error, corrcoeff, dof, stdError] = ...
+function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
         DoRegression(dhtinput, Tinput, opt)
 
     if ~exist('opt', 'var') | ~isfield(opt, 'debug')
@@ -26,12 +26,6 @@ function [infer_mode, infer_mode_error, corrcoeff, dof, stdError] = ...
             continue;
         end
 
-        % regress to find mode shape
-        % infer_mode(ii) = dhtfilt(mask)' \ T(mask)';
-        % [infer_mode(ii), bint] = ...
-        %     regress(T(mask)', dhtfilt(mask)');
-        % infer_mode_error(ii,1) = bint(2) - infer_mode(ii);
-
         if opt.debug
             figure(opt.hdbg);
             hdbgax2 = subplot(212);
@@ -41,41 +35,24 @@ function [infer_mode, infer_mode_error, corrcoeff, dof, stdError] = ...
             keyboard;
         end
 
-        cutoff = 2./opt.filt.cutoff;
-        if opt.filter_temp
-            dof(ii) = ...
-                floor(min([calcdof(dht, 'narrowband', cutoff) ...
-                           calcdof(T, 'narrowband', cutoff)]));
-        else
-            dof(ii) = calcdof(dht, 'narrowband', cutoff);
-        end
-
-        Nsamp = ceil(length(mask) / dof(ii)) + 1;
-
-        if length(cut_nan(dht(1:Nsamp:end))) <= 2 | ...
-                length(cut_nan(isnan(T(1:Nsamp:end)))) <= 2
-            continue;
-        end
-
         % use 0.5cm error on dynamic height (units cm)
         % use 0.01 C error on temperature
         % (Tom's suggestion).
         if opt.TagainstDHT
-            rrwtls = mf_wtls(dht(1:Nsamp:end)', T(1:Nsamp:end)', ...
-                             0.1, 0.01, 0);
+            rrwtls = mf_wtls(dht', T', 0.1, 0.01, 0);
 
             [rrols([3 1]), rrols([4 2]), ~, stderr] = ...
-                dcregress(dht', T'-nanmean(T), dof(ii), [], 0);
+                dcregress(dht', T'-nanmean(T), [], 0,0,0);
         else
-            rrwtls = mf_wtls(T(1:Nsamp:end)', dht(1:Nsamp:end)', ...
-                             0.01, 0.5, 0);
+            rrwtls = mf_wtls(T', dht', 0.01, 0.5, 0);
 
             [rrols([3 1]), rrols([4 2]), ~] = ...
-                dcregress(T'-nanmean(T), dht', dof(ii), [], 0);
+                dcregress(T'-nanmean(T), dht', [], 0,0,0);
         end
 
         infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
         infer_mode_error(ii,1:2) = [1.96*stderr(2)*opt.SlopeSigma rrwtls(2)];
+        intercept(ii,:) = [rrols(3) rrols(4)];
         stdError(ii) = stderr(2);
 
         % "Since the slope from the GMFR is simply a ratio of
