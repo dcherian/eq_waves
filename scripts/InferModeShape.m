@@ -78,7 +78,8 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           Tstd = infer_mode;
 
           Tstd = nanstd(Tfilt(:,range)')';
-          [infer_mode, infer_mode_error, corrcoeff, dof, stderr] ...
+          [infer_mode, infer_mode_error, corrcoeff, ...
+           intercept, stderr] ...
               = DoRegression(dhtfilt, Tfilt(:, range), opt);
 
           % normalize mode shapes if not monte-carlo
@@ -112,7 +113,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           % assert(all(cut_nan(modes.InferredModeWTLS{mm,nn}) <= 1), ...
           % 'WTLS regression ampl > 1');
 
-          modes.dof{mm,nn} = dof;
+          modes.intercept{mm,nn} = intercept;
           modes.corr{mm,nn} = corrcoeff;
 
           modes.timedht{mm,nn} = data.timedht;
