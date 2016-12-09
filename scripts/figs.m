@@ -434,10 +434,9 @@ figure; hold on;
 for ii=1:4
     [b,a] = butter(ii, sort(2./opt.filt.cutoff/(1/2)), 'bandpass');
     [h,t] = stepz(b,a);
-    hplt(ii) = plot(t,h+(ii-1)/6);
+    hplt(ii) = plot(t,h+(ii-1)/6, 'DisplayName', num2str(ii));
 end
-uistack(hplt(1), 'top')
-legend('1', '2', '3', '4', 'Location', 'SouthEast')
+legend('Location', 'SouthEast')
 title('(1,2,3,4) order butterworth filter step response uzing stepz')
 resizeImageForPub('portrait');
 beautify([11 12 13])
