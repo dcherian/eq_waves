@@ -40,9 +40,9 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           if opt.debug
               opt.hdbg = figure;
               hdbgax1 = subplot(211);
-              PlotSpectrum(data.dht);
+              PlotSpectrum(data.dht{mm,nn});
               PlotSpectrum(dhtfilt);
-              linex(1./opt.windows);
+              linex(1./opt.filt.cutoff);
           end
 
           % iterate over depths and filter temperature
@@ -59,7 +59,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
 
               if opt.debug
                   axes(hdbgax1);
-                  PlotSpectrum(cut_nan(data.T(ii,:)));
+                  PlotSpectrum(cut_nan(data.T{mm,nn}(ii,:)));
                   PlotSpectrum(cut_nan(Tfilt(ii,:)));
               end
           end

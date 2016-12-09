@@ -26,13 +26,12 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
             continue;
         end
 
-        if opt.debug
-            figure(opt.hdbg);
-            hdbgax2 = subplot(212);
+        if opt.debugRegression
+            figure;
             plot(dht(mask)); hold on;
             plot(T(mask));
-            title('filtered time series for regression');
-            keyboard;
+            title(['filtered time series for regression' ...
+                   ' | depth level = ' num2str(ii)]);
         end
 
         % use 0.5cm error on dynamic height (units cm)
@@ -42,12 +41,14 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
             rrwtls = mf_wtls(dht', T', 0.1, 0.01, 0);
 
             [rrols([3 1]), rrols([4 2]), ~, stderr] = ...
-                dcregress(dht', T'-nanmean(T), [], 0,0,0);
+                dcregress(dht', T'-nanmean(T), [], ...
+                          0, opt.debugRegression, 0);
         else
             rrwtls = mf_wtls(T', dht', 0.01, 0.5, 0);
 
             [rrols([3 1]), rrols([4 2]), ~] = ...
-                dcregress(T'-nanmean(T), dht', [], 0,0,0);
+                dcregress(T'-nanmean(T), dht', [], ...
+                          0, opt.debugRegression, 0);
         end
 
         infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
@@ -72,7 +73,6 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
                 corrcoeff(ii) = 0;
                 infer_mode(ii, 2) = NaN;
                 infer_mode_error(ii, 2) = NaN;
-
             end
         end
     end
