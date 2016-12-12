@@ -443,7 +443,6 @@ beautify([11 12 13])
 
 export_fig images/butterworth-step-response.png
 
-
 %% compare windows
 plotopt.window = 'rect';
 PlotModeMap(plotopt);
@@ -559,93 +558,93 @@ xx = synthetic_timeseries_known_spectrum(len, 1, 1, -3);
 yy = synthetic_timeseries_known_spectrum(len, 1, 1, 0);
 
 figure;
- subplot(121);
- plot(xx, yy, '*');
- [coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
+subplot(121);
+plot(xx, yy, '*');
+[coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
 
- xx = BandPass(xx, opt.filt);
- yy = BandPass(yy, opt.filt);
- subplot(122);
- plot(xx, yy, '*');
- [coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
+xx = BandPass(xx, opt.filt);
+yy = BandPass(yy, opt.filt);
+subplot(122);
+plot(xx, yy, '*');
+[coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0)
 
 %% correlation structure and filtering
 
- figure('Position', [146 1030 560 573]);
- hax(1) = subplot(311);
- CorrFilter(0, hax(1));
- xlabel('');
- beautify([13 14 15]);
+figure('Position', [146 1030 560 573]);
+hax(1) = subplot(311);
+CorrFilter(0, hax(1));
+xlabel('');
+beautify([13 14 15]);
 
- hax(2) = subplot(312);
- CorrFilter(-3, hax(2));
- xlabel('');
- beautify([13 14 15]);
+hax(2) = subplot(312);
+CorrFilter(-3, hax(2));
+xlabel('');
+beautify([13 14 15]);
 
- hax(3) = subplot(313);
- CorrFilter(-5, hax(3));
- beautify([13 14 15]);
+hax(3) = subplot(313);
+CorrFilter(-5, hax(3));
+beautify([13 14 15]);
 
- linkaxes(hax, 'x');
- xlim([-1 1]*30)
+linkaxes(hax, 'x');
+xlim([-1 1]*30)
 
- export_fig -transparent images/correlation-structure-filtering.png
+export_fig -transparent images/correlation-structure-filtering.png
 
- %% figure out data frequency slopes
+%% figure out data frequency slopes
 
- SubsetLength = 256;
- if ~exist('tao', 'var'), tao = ReadTaoTriton; end
+SubsetLength = 256;
+if ~exist('tao', 'var'), tao = ReadTaoTriton; end
 
- Tslope = nan([11 7]);
- for mm=1:11
-     for nn=1:7
-         if isempty(tao.dht{mm,nn}), continue; end
+Tslope = nan([11 7]);
+for mm=1:11
+    for nn=1:7
+        if isempty(tao.dht{mm,nn}), continue; end
 
-         [Sdht, freq] = GappySpectrum(tao.dht{mm,nn}, SubsetLength);
+        [Sdht, freq] = GappySpectrum(tao.dht{mm,nn}, SubsetLength);
 
-         St = nan([length(freq) size(tao.T{mm,nn}, 1)]);
-         for zz=1:size(tao.T{mm,nn}, 1)
-             try
-                 St(:,zz) = GappySpectrum(tao.T{mm,nn}(zz,:), SubsetLength);
-             catch ME
-                 St(:,zz) = NaN;
-             end
-         end
+        St = nan([length(freq) size(tao.T{mm,nn}, 1)]);
+        for zz=1:size(tao.T{mm,nn}, 1)
+            try
+                St(:,zz) = GappySpectrum(tao.T{mm,nn}(zz,:), SubsetLength);
+            catch ME
+                St(:,zz) = NaN;
+            end
+        end
 
-         % avg over depth
-         St = nanmean(St, 2);
+        % avg over depth
+        St = nanmean(St, 2);
 
-         [coeff, conf] = dcregress(log(freq), log(St), length(freq), [], 0);
-         Tslope(mm,nn) = coeff(2);
-         [coeff, conf] = dcregress(log(freq), log(Sdht), length(freq), [], 0);
-         DHTslope(mm,nn) = coeff(2);
-     end
- end
+        [coeff, conf] = dcregress(log(freq), log(St), length(freq), [], 0);
+        Tslope(mm,nn) = coeff(2);
+        [coeff, conf] = dcregress(log(freq), log(Sdht), length(freq), [], 0);
+        DHTslope(mm,nn) = coeff(2);
+    end
+end
 
- figure;
- histogram(DHTslope);
- hold on;
- histogram(Tslope);
- legend('Dyn ht', 'temp');
+figure;
+histogram(DHTslope);
+hold on;
+histogram(Tslope);
+legend('Dyn ht', 'temp');
 
- %% monte carlo distribution fits
+%% monte carlo distribution fits
 
- load montecarlo
+load montecarlo
 
- figure;
- hax(1) = subplot(121);
- FitAndPlotDist(slfit, [], hax(1));
- title('Regression slope');
- pbaspect([1.3 1 1]);
- beautify([12 14 15]);
+figure;
+hax(1) = subplot(121);
+FitAndPlotDist(slfit, [], hax(1));
+title('Regression slope');
+pbaspect([1.3 1 1]);
+beautify([12 14 15]);
 
- hax(2) = subplot(122);
- FitAndPlotDist(rfit, [], hax(2));
- title({'Fisher transformed'; 'corr coeff'})
- pbaspect([1.3 1 1])
- xlim([-1 1]*0.2)
- beautify([12 14 15]);
+hax(2) = subplot(122);
+FitAndPlotDist(rfit, [], hax(2));
+title({'Fisher transformed'; 'corr coeff'})
+pbaspect([1.3 1 1])
+xlim([-1 1]*0.2)
+beautify([12 14 15]);
 
- resizeImageForPub('portrait')
+resizeImageForPub('portrait')
 
- export_fig -r150 -transparent images/tao-monte-carlo-null-hyp-distributions.png
+export_fig -r150 -transparent images/tao-monte-carlo-null-hyp-distributions.png
