@@ -648,3 +648,37 @@ beautify([12 14 15]);
 resizeImageForPub('portrait')
 
 export_fig -r150 -transparent images/tao-monte-carlo-null-hyp-distributions.png
+
+%% regression residuals white noise
+xx = linspace(-1,1,5e1);
+yy = 5*xx;
+noise = synthetic_timeseries_known_spectrum(5e1,1,1,0)';
+yy = 5*xx + 0.3*max(abs(yy))*noise./max(noise);
+
+% xx = randn(5e2,1);
+% yy = 5*xx;
+% yy = yy + 0.1*max(abs(yy))*randn(5e2,1);
+
+dcregress(xx, yy, [], 0, 1, 0);
+
+
+%% corr dht, T
+[c, lags] = GappyCorrelation(T);
+c = abs(c);
+mask = lags>0 & c>0;
+c = c(mask);
+lags = lags(mask);
+
+range = 1:100;
+[y0, X] = exp_fit(lags(range), c(range), 1)
+
+Tfill = cut_nan(T);
+dhtfill = cut_nan(dht);
+
+dcregress(dhtfill(1:30:end)', Tfill(1:30:end)', [], 0, 1, 0);
+dcregress(dht, T, [], 0, 1, 0);
+
+%%
+
+E = [1 1; 1 -1; 1 -2];
+y = [1; 2; 4]

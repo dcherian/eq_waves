@@ -1,3 +1,4 @@
+% FitAndPlotDist(in, distname, hax)
 function [] = FitAndPlotDist(in, distname, hax)
 
     if isprop(in, 'ParameterValues')
@@ -19,6 +20,7 @@ function [] = FitAndPlotDist(in, distname, hax)
 
     histogram(fitd.InputData.data, 40, 'Normalization', 'pdf');
     hold on;
+    xlim([-1 1]*max(abs(xlim)));
     limx = xlim;
     xvec = linspace(limx(1), limx(2), 200);
     plot(xvec, fitd.pdf(xvec), 'k-')
