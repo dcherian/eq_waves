@@ -353,10 +353,12 @@ xlabel('Inferred mode amplitude');
 ylabel('Corr. coeff');
 
 %% check regression slopes
-mm = 5; nn = 2;
+mm = 8 ; nn = 4;
 
+tao = ReadTaoTriton(mm, nn);
 [opt, plotopt] = DefaultOptions;
-modes = InferModeShape(opt, mm, nn);
+opt.numMC = 1e3;
+modes = InferModeShape(opt, tao, mm, nn);
 PlotMode(modes, mm, nn);
 
 %% slope burger number

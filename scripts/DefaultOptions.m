@@ -23,11 +23,8 @@ function [opt, plotopt] = DefaultOptions()
     opt.TagainstDHT = 1; % T on y-axis of regression?
     opt.InterpGapLength = 5; % gap length over which to linearly interpolate
 
-    % monte carlo error estimates
-    % errors are normally distributed with σ = 2.84
-    opt.SlopeSigma = 2.84;
-    % correlation significance level
-    opt.corr_sig = 0.08;
+    opt.corr_sig = 0.08; % correlation significance level
+    opt.numMC = 5e3; % number of iterations when estimating error bounds
 
     plotopt.nmode = [2]; % which theoretical mode am I looking for?
     plotopt.plotcorr = 1;

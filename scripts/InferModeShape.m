@@ -37,6 +37,10 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           % First do Bandpass filtering
           dhtfilt = BandPass(dht, opt.filt);
 
+          if opt.TagainstDHT
+              [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(dht, opt);
+          end
+
           if opt.debug
               opt.hdbg = figure;
               hdbgax1 = subplot(211);
@@ -45,22 +49,32 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
               linex(1./opt.filt.cutoff);
           end
 
-          % iterate over depths and filter temperature
+          % iterate over depths and
+          % 1. Filter temperature,
+          % 2. Estimate background noise spectrum for temperature
           clear Tfilt
+          if ~opt.TagainstDHT
+              clear NoiseAmp NoiseSlope
+          end
+
           for ii = 1:length(modes.depth{mm,nn})
               data.T{mm,nn}(ii,:) = fill_gap(data.T{mm,nn}(ii,:), ...
                                              'linear', opt.InterpGapLength);
               if opt.filter_temp
-                  % band pass filter temperature data
                   Tfilt(ii,:) = BandPass(data.T{mm,nn}(ii,:), opt.filt);
               else
                   Tfilt(ii,:) = data.T{mm,nn}(ii,:);
               end
 
+              if ~opt.TagainstDHT
+                  [NoiseAmp(ii), NoiseSlope(ii)] = ...
+                      EstimateNoiseSpectrum(data.T{mm,nn}(ii,:), opt);
+              end
+
               if opt.debug
                   axes(hdbgax1);
-                  PlotSpectrum(cut_nan(data.T{mm,nn}(ii,:)));
-                  PlotSpectrum(cut_nan(Tfilt(ii,:)));
+                  PlotSpectrum(data.T{mm,nn}(ii,:));
+                  PlotSpectrum(Tfilt(ii,:));
               end
           end
 
@@ -80,7 +94,8 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           Tstd = nanstd(Tfilt(:,range)')';
           [infer_mode, infer_mode_error, corrcoeff, ...
            intercept, stderr] ...
-              = DoRegression(dhtfilt, Tfilt(:, range), opt);
+              = DoRegression(dhtfilt, Tfilt(:, range), ...
+                             NoiseAmp, NoiseSlope, opt);
 
           % normalize mode shapes if not monte-carlo
           % first OLS
