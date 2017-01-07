@@ -6,6 +6,15 @@ function [opt, plotopt] = DefaultOptions()
     opt.filt.cutoff = 2./[0.14 0.16]; % (days) band pass filter windows
     opt.filt.debugflag = 0; % debugging spectrum plots in BandPass()
 
+    % Save butterworth filter parameters so as to save time later.
+    % butterworth requires (desired freq)/(sampling freq/2)
+    % the factor of 4 is because
+    % a) 1./opt.cutoff = (desired freq)/2
+    %      as designed for other windows.
+    % b) (sampling freq/2) = 1/2 cpd.
+    [opt.filt.b, opt.filt.a] = ...
+        butter(1, sort(2./opt.filt.cutoff/(1/2)), 'bandpass');
+
     opt.name = 'bc2m1';
     opt.nmode = 2; % what mode am I look for? used for normalization
     opt.filter_temp = 1;

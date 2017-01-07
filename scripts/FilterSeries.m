@@ -20,15 +20,6 @@ function [out] = FilterSeries(in, opt)
 
     [gapstart, gapend] = FindGaps(in);
 
-    if strcmpi(opt.window, 'butterworth')
-        % butterworth requires (desired freq)/(sampling freq/2)
-        % the factor of 4 is because
-        % a) 1./opt.cutoff = (desired freq)/2
-        %      as designed for other windows.
-        % b) (sampling freq/2) = 1/2 cpd.
-        [b,a] = butter(1, sort(2./opt.cutoff/(1/2)), 'bandpass');
-    end
-
     start = 1;
     out = nan(size(in));
     for ii=1:length(gapstart)
@@ -41,7 +32,7 @@ function [out] = FilterSeries(in, opt)
         % and analysis less sensitive to choice of window.
         if strcmpi(opt.window, 'butterworth')
             segment = in(range) - nanmean(in(range));
-            out(range) = filter(b, a, segment);
+            out(range) = filter(opt.b, opt.a, segment);
 
             if opt.debugflag
                 % plot filtered time series and step response
