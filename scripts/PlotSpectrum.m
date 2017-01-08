@@ -9,5 +9,8 @@ function [hplt] = PlotSpectrum(in, SubsetLength, hax)
     hax.XScale = 'log';
     hax.YScale = 'log';
 
+    xlabel('Frequency (cpd)')
+    ylabel('Spectral density (m^2/s^2/cpd)')
+
     %[F,S] = mspec(in, [], 'cyclic');
     %plot(F, S);

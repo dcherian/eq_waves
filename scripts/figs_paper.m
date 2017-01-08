@@ -73,3 +73,41 @@ hax(2).Position(4) = 0.7;
 hax(1).Color = 'None';
 
 export_fig -c[Inf,0,Inf,0] -despc ./images/farrar-durland-spectrum.pdf
+
+%% background noise estimation
+
+opt = DefaultOptions;
+
+hfig = figure;
+hax(1) = subplot(211);
+hax(2) = subplot(212);
+kk = 1;
+
+for mm = [8 10]
+    for nn = [4]
+        data = ReadTaoTriton(mm,nn);
+        EstimateNoiseSpectrum(data.dht{mm,nn}, opt, 1, hax(kk));
+        hax(kk).Title.String = getTitleString(data.lon(mm),data.lat(nn));
+        %EstimateNoiseSpectrum(data.dht{mm,nn}, opt, 1, hax(kk+2));
+        if kk == 1
+            legend('off');
+            xlabel('');
+        else
+            hleg = legend;
+            hleg.String{1} = 'Dyn. ht.';
+            hleg.String{2} = 'Filtered dyn. ht.';
+            hleg.Position = [ 0.5741    0.2905    0.4407    0.1810];
+        end
+        axes(hax(kk)); beautify([12 13 14], 'Times');
+        kk = kk+1;
+    end
+end
+linkaxes(hax, 'xy');
+hax(1).XLim = [0.05 0.5];
+hax(1).YLim = [1e-2 1e4];
+resizeImageForPub('onecolumn');
+
+% set(hfig, 'Position', [300 415 540 285]);
+hfig.Position = [130 415 270 420];
+% hleg.Position =  [0.1256 0.3040 0.2286 0.2667];
+savepdf('images/estimate-noise-spectrum.pdf')

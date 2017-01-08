@@ -6,7 +6,8 @@ function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
 
     if ~exist('plotflag', 'var'), plotflag = 0; end
 
-    [S, freq] = GappySpectrum(in, 365);
+    SubsetLength = []; 256;
+    [S, freq] = GappySpectrum(in, SubsetLength);
     indfreq = find(freq > min(2./opt.filt.cutoff), 1, 'first')-1;
     assert(freq(indfreq) < min(2./opt.filt.cutoff));
 
@@ -20,16 +21,22 @@ function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
         yline = coeff(2)*xline + coeff(1);
 
         tseries = synthetic_timeseries_known_spectrum(...
-            365, 1, NoiseAmp, NoiseSlope);
+            length(in), 1, NoiseAmp, NoiseSlope);
+        % insert gaps at the same time instants as in input so that
+        % PlotSpectrum gets quivalent input to work with
+        tseries(isnan(in)) = NaN;
+
         if ~exist('hax', 'var')
             figure;
         else
             axes(hax);
         end
-        PlotSpectrum(in, 365);
-        hplt = PlotSpectrum(tseries); %hplt.Color = [1 1 1]*0.25;
+        PlotSpectrum(in, SubsetLength);
+        PlotSpectrum(BandPass(in, opt.filt), SubsetLength);
+        hplt = PlotSpectrum(tseries, SubsetLength);
         plot(exp(xline(1:indfreq)), exp(yline(1:indfreq)), 'k');
-        plot(exp(xline(indfreq+1:end)), exp(yline(indfreq+1:end)), 'k--');
+        plot(exp(xline(indfreq+1:end)), exp(yline(indfreq+1:end)), ...
+             'k--', 'HandleVisibility', 'off');
         limy = ylim;
         hpt = patch(2./[opt.filt.cutoff(2) opt.filt.cutoff(2) ...
                         opt.filt.cutoff(1) opt.filt.cutoff(1) ...
@@ -37,9 +44,9 @@ function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
                     [min(ylim) max(ylim) max(ylim) ...
                      min(ylim) min(ylim)], ...
                     'k', 'EdgeColor', 'none', 'FaceAlpha', 0.1);
-        legend('Input', 'Generated noise', ...
-               'Straight line fit', 'Straight line extrapolated', ...
-               'Filter band', 'Location', 'SouthWest');
+        legend('Input', 'Filtered Input', 'Generated noise', ...
+               'Straight line fit', ...% 'Straight line extrapolated', ...
+               'Filter band', 'Location', 'NorthEast');
         axis('square');
         beautify;
         grid on;
