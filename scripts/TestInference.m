@@ -8,7 +8,7 @@ plotfigures = 1;
 [opt, plotopt] = DefaultOptions;
 
 opt.rednoise = 1;
-opt.nullhyp = 1; % if 1, dynht is substituted with red noise
+opt.nullhyp = 0; % if 1, dynht is substituted with red noise
 opt.filter_temp = 1;
 plotopt.plotWTLS = 0;
 
@@ -101,8 +101,9 @@ if plotfigures
     ylim([1e-30 1e3])
 end
 %% total least squares and plot
+[NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(dynht, opt);
 [infer_mode, infer_mode_error, corrcoeff, dof] = ...
-    DoRegression(dynht', Tsamp', opt);
+    DoRegression(dynht', Tsamp', NoiseAmp, NoiseSlope, opt);
 
 % get into structure so that PlotMode can be reused
 [mmax, imax] = max(abs(infer_mode(:,1)));
