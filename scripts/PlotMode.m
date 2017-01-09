@@ -38,6 +38,7 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         plotopt.ploterr = 1;
         plotopt.plotOLS = 1;
         plotopt.plotWTLS = 0;
+        plotopt.MarkWaterDepth = 1;
     else
         if ~isfield(plotopt, 'nmode')
             plotopt.nmode = [1 2];
@@ -56,6 +57,9 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         end
         if ~isfield(plotopt, 'plotWTLS')
             plotopt.plotWTLS = 0;
+        end
+        if ~isfield(plotopt, 'MarkWaterDepth')
+            plotopt.MarkWaterDepth = 1;
         end
     end
 
@@ -157,6 +161,14 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         set(gcf, 'Renderer', 'painters');
     end
 
+    if plotopt.MarkWaterDepth
+        handles.hdepth = text(hax, 0.5, min(ylim), ...
+                              [num2str(round(flatbot.etopoDepth(mm,nn))) ...
+                            'm'], 'Units', 'data', ...
+                              'Color', [1 1 1]*0.5, ...
+                              'HorizontalAlignment', 'left', ...
+                              'VerticalAlignment', 'bottom');
+    end
     handles.h0 = plot(hax, [0 0], hax.YLim, '--', 'Color', [1 1 1]*0.6, ...
                       'LineWidth', 1, 'LegendDisplay', 'off');
 

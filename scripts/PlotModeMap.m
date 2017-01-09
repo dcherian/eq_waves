@@ -100,10 +100,16 @@ function [hax, supax] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
           ax.YTickLabels{1} = '';
           ax.XTick = [0 1];
 
-          PlotMode(modes, mm, nn, plotopt, ax);
+          handles = PlotMode(modes, mm, nn, plotopt, ax);
 
           ax.XLabel.Color = labelcolor;
           ax.YLabel.Color = labelcolor;
+
+          if plotopt.MarkWaterDepth
+              handles.hdepth.FontName = 'Times';
+              handles.hdepth.FontSize = fontSize(1)-4;
+              handles.hdepth.Position(2) = ylimits(1);
+          end
 
           if subplot_index == 1
               hleg = legend(ax, 'Location', 'NorthWest');

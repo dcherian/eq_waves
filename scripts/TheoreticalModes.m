@@ -130,6 +130,7 @@ function [] = TheoreticalModes()
           sgn(sgn == 0) = 1;
           Tmode = bsxfun(@times, Tmode, sgn);
 
+          flatbot.etopoDepth(mm,nn) = etDepth;
           flatbot.N2(mm,nn,:) = N2;
           flatbot.IdealWMode(mm,nn,:,:) = Vmode;
           flatbot.IdealTempMode(mm,nn,:,:) = Tmode;
