@@ -68,7 +68,8 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         providedHax = 1;
     end
 
-    hax.PlotBoxAspectRatio = [1 1 1]; %[0.5 1.2 0.2294];
+    %hax.PlotBoxAspectRatio = [1 1 1]; %[0.5 1.2 0.2294];
+    axis fill;
 
     hold on;
 

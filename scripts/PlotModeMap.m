@@ -3,13 +3,17 @@
 
 function [hax, supax] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
 
-  if ~exist('lonrange', 'var')
+  if ~exist('modes', 'var')
       load([plotopt.name '-' plotopt.window '.mat']);
+  end
+
+  if ~exist('lonrange', 'var')
       lonrange = 1:length(modes.lon);
       latrange = 1:length(modes.lat);
   end
 
   hfig = figure;
+  hfig.Color = [1 1 1];
   hfig.Position = [0 0 1600 900];
   hfig.Renderer = 'painters';
 
@@ -20,7 +24,7 @@ function [hax, supax] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
   ylimits = [-750 0];
   fontSize = [20 24 28];
   linewidth = 1;
-  labelcolor = [1 1 1]*0.3;
+  labelcolor = 'k'; [1 1 1]*0.3;
   linestylemode = {'--'; '-'; '-.'}; % line style for theoretical modes.
 
   nlon = length(lonrange);
@@ -98,6 +102,9 @@ function [hax, supax] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
 
           PlotMode(modes, mm, nn, plotopt, ax);
 
+          ax.XLabel.Color = labelcolor;
+          ax.YLabel.Color = labelcolor;
+
           if subplot_index == 1
               hleg = legend(ax, 'Location', 'NorthWest');
               hleg.Box = 'off';
@@ -114,11 +121,12 @@ function [hax, supax] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
   end
 
   [supax,~] = suplabel([opt.name ' | ' ...
-                     opt.filt.window ' [' num2str(sort(cutoff), ...
-                                                  '%.1f ') ']'], 't');
+                      opt.filt.window ' [' num2str(sort(cutoff), ...
+                                                   '%.1f ') ']'], 't');
+  supax.Color = 'none';
   supax.YLabel.String = 'Z (m)';
   supax.YLabel.Visible = 'on';
-  supax.YLabel.Position(1) = -0.01;
+  supax.YLabel.Position(1) = -0.05;
   supax.Title.FontSize = fontSize(3);
 
   supax.Title.FontName = 'Times';
@@ -126,7 +134,8 @@ function [hax, supax] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
   supax.XLabel.FontName = 'Times';
 
   linkaxes(hax, 'xy');
-  hax(nlon*(nlat-1)+ceil(nlon/2)).XAxis.Axle.VertexData(1) = 0;
+  hax(nlon*(nlat-1)+ceil(nlon/2)).XAxis.Axle.VertexData(1,1) = 0;
+  hax(nlon*(nlat-1)+ceil(nlon/2)).XAxis.Axle.VertexData(1,2) = 1;
 
   %export_fig('-nocrop','-r150','../images/' opt.name '.png');
 end
