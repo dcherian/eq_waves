@@ -111,3 +111,78 @@ resizeImageForPub('onecolumn');
 hfig.Position = [130 415 270 420];
 % hleg.Position =  [0.1256 0.3040 0.2286 0.2667];
 savepdf('images/estimate-noise-spectrum.pdf')
+
+%% bathy map
+
+datadir = '../data/';
+if ~exist('etopo', 'var')
+    etoponame = ['../data/ETOPO2v2g_f4.nc4'];
+    disp(' Loading ETOPO2v2 data.');
+    etopo.x = ncread(etoponame, 'x');
+    etopo.y = ncread(etoponame, 'y');
+    etopo.z = ncread(etoponame, 'z');
+end
+
+tao.lat = [8 5 2 0 -2 -5 -8];
+% values in +ve East.
+tao.lon = -1 * fliplr([95 110 125 140 155 170 180 ...
+                    -165 -156 -147 -137]);
+
+figure; hold on;
+PlotBathy(etopo, [-180 -80], [-1 1]*10, 10);
+PlotBathy(etopo, [+110-360 -180], [-1 1]*10, 10);
+for mm=1:11
+    for nn=1:7
+        if tao.lon(mm) > 0
+            lonstr = 'e';
+        else
+            lonstr = 'w';
+        end
+
+        if tao.lat(nn) < 0
+            latstr = 's';
+        else
+            latstr = 'n';
+        end
+
+        % TAO filenames
+        fnamet = [datadir 'temp/t',   num2str(abs(tao.lat(nn))), ...
+                  latstr,num2str(abs(tao.lon(mm))),lonstr,'_dy.cdf'];
+        fnameh = [datadir 'dynht/dyn',num2str(abs(tao.lat(nn))), ...
+                  latstr,num2str(abs(tao.lon(mm))),lonstr,'_dy.cdf'];
+
+        % make sure observations exist before continuing
+        if ~exist(fnamet,'file'), continue; end
+        if ~exist(fnameh,'file'), continue; end
+
+        if tao.lon(mm) > 0
+            lon = -360+tao.lon(mm);
+        else
+            lon = tao.lon(mm);
+        end
+
+        h(mm,nn) = plot(lon, tao.lat(nn), 'r.', ...
+                        'MarkerSize', 20);
+    end
+end
+
+heq = liney(0);
+uistack(heq, 'bottom');
+resizeImageForPub('portrait')
+pbaspect([4 1 1]);
+xlabel('Longitude');
+ylabel('Latitude');
+beautify([12 12 14], 'Times'); box on;
+
+hax = gca;
+ticks = hax.XTick;
+for ii=1:length(hax.XTick)
+    if ticks(ii) < -180
+        hax.XTickLabel{ii} = [num2str(360+ticks(ii)) '^oE'];
+    else
+        hax.XTickLabel{ii} = [num2str(-ticks(ii)) '^oW'];
+    end
+end
+hax.YAxis.TickLabelFormat = '%g^o';
+
+export_fig -c[Inf,0,Inf,0] -despc2 images/bathy-mooring-locations.pdf
