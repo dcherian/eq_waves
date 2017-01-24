@@ -128,6 +128,20 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           % assert(all(cut_nan(modes.InferredModeWTLS{mm,nn}) <= 1), ...
           % 'WTLS regression ampl > 1');
 
+          % figure out phase with depth
+          [~,maxDepth] = max(modes.InferredModeOLS{mm,nn});
+          phaselag = nan(length(modes.InferredModeOLS{mm,nn}), 1);
+          omega = mean(opt.filt.cutoff/2);
+          for ii=1:length(modes.InferredModeOLS{mm,nn})
+              [c, lags, delay(ii)] = GappyCorrelation(Tfilt(ii,:), ...
+                                                      Tfilt(maxDepth,:));
+
+              % in degrees
+              phaselag(ii) = atan2( tan(...
+                  2*pi/omega * delay(ii)), 1) * 180/pi;
+          end
+
+          modes.phaselag{mm,nn} = phaselag;
           modes.intercept{mm,nn} = intercept;
           modes.corr{mm,nn} = corrcoeff;
 
