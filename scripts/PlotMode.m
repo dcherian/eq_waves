@@ -8,8 +8,9 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
     capwidth = 12;
     linestylemode = {'--'; '-'; '-.'}; % line style for theoretical modes.
 
-    red = [227,74,51]/255;
-    green = [35,132,67]/255;
+    red = [217,95,2]/255; %[227,74,51]/255;
+    blue = [117,112,179]/255;
+    green = [27,158,119]/255; %[35,132,67]/255;
 
     stack = dbstack;
     if length(stack) > 1
@@ -32,13 +33,7 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
     end
 
     if ~exist('plotopt', 'var')
-        plotopt.nmode = [1 2];
-        plotopt.plotstd = 0;
-        plotopt.plotcorr = 1;
-        plotopt.ploterr = 1;
-        plotopt.plotOLS = 1;
-        plotopt.plotWTLS = 0;
-        plotopt.MarkWaterDepth = 1;
+        [~, plotopt] = DefaultOptions;
     else
         if ~isfield(plotopt, 'nmode')
             plotopt.nmode = [1 2];
@@ -60,6 +55,9 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         end
         if ~isfield(plotopt, 'MarkWaterDepth')
             plotopt.MarkWaterDepth = 1;
+        end
+        if ~isfield(plotopt, 'plotPhaseLag')
+            plotopt.plotPhaseLag = 1;
         end
     end
 
@@ -98,6 +96,17 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
             %              'DisplayName', 'T_{TAO/TRITON} OLS');
             % handles.herro = cut_nan(handles.herro(:,1));
         end
+    end
+
+    if plotopt.plotPhaseLag
+        phaselag = modes.phaselag{mm,nn};
+        phasedepth = modes.depth{mm,nn}(~isnan(phaselag));
+        phaselag = phaselag(~isnan(phaselag));
+        handles.hlag = plot(hax, phaselag/180, -phasedepth, ...
+                            '.-', 'Color', green, ...
+                            'MarkerSize', 12, ...
+                            'LineWidth', linewidth, ...
+                            'DisplayName', 'Phase lag/180^o');
     end
 
     if plotopt.plotWTLS
@@ -145,8 +154,8 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
     if plotopt.plotcorr
         handles.hcorr = ...
             plot(hax, modes.corr{mm,nn}, modes.depth{mm,nn} * -1, ...
-                 'b.', 'MarkerSize', 12, 'DisplayName', ...
-                 'Corr. Coeff.');
+                 '.', 'MarkerSize', 12, 'Color', blue, ...
+                 'DisplayName', 'Corr. Coeff.');
     end
 
     if ~providedHax

@@ -31,8 +31,9 @@ function [opt, plotopt] = DefaultOptions()
     plotopt.plotstd = 0;
     plotopt.ploterr = 1;
     plotopt.plotOLS = 1;
-    plotopt.plotWTLS = 1;
+    plotopt.plotWTLS = 0;
     plotopt.MarkWaterDepth = 1;
+    plotopt.plotPhaseLag = 0;
 
     plotopt.window = opt.filt.window;
     plotopt.name = opt.name;
