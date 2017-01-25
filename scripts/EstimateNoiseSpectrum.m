@@ -1,18 +1,31 @@
 function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
                                                       plotflag, hax)
     % Estimate noise spectrum as S = (NoiseAmp) * (freq)^(NoiseSlope)
-    % Do this by fitting a line in frequency band up to low
-    % frequency cutoff
+    % Do this by fitting a line in
+    %    (freq < low-frequency cutoff).
+    % Optionally, use frequency information in
+    %    (freq > high frequency cutoff).
 
+    useHiFreq = 0;
     if ~exist('plotflag', 'var'), plotflag = 0; end
 
     SubsetLength = []; 256;
     [S, freq] = GappySpectrum(in, SubsetLength);
-    indfreq = find(freq > min(2./opt.filt.cutoff), 1, 'first')-1;
-    assert(freq(indfreq) < min(2./opt.filt.cutoff));
 
-    [coeff] = dcregress(log(freq(1:indfreq)), ...
-                        log(S(1:indfreq)), NaN, 0, 0, 0, 0);
+    indfreqlo = find(freq > min(2./opt.filt.cutoff), 1, 'first')-1;
+    if useHiFreq
+        find(freq < max(2./opt.filt.cutoff), 1, 'last')+1;
+    else
+        indfreqhi = length(S);
+    end
+    assert(freq(indfreqlo) < min(2./opt.filt.cutoff));
+    assert(freq(indfreqhi) > max(2./opt.filt.cutoff));
+
+    S(indfreqlo:indfreqhi) = NaN;
+    freqreg = freq;
+    freqreg(indfreqlo:indfreqhi) = NaN;
+
+    [coeff] = dcregress(log(freqreg), log(S), NaN, 0, 0, 0, 0);
     NoiseAmp = exp(coeff(1));
     NoiseSlope = coeff(2);
 
@@ -34,8 +47,10 @@ function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
         PlotSpectrum(in, SubsetLength);
         PlotSpectrum(BandPass(in, opt.filt), SubsetLength);
         hplt = PlotSpectrum(tseries, SubsetLength);
-        plot(exp(xline(1:indfreq)), exp(yline(1:indfreq)), 'k');
-        plot(exp(xline(indfreq+1:end)), exp(yline(indfreq+1:end)), ...
+        plot(exp(xline(1:indfreqlo)), exp(yline(1:indfreqlo)), 'k');
+        plot(exp(xline(indfreqlo+1:indfreqhi)), exp(yline(indfreqlo+1:indfreqhi)), ...
+             'k--', 'HandleVisibility', 'off');
+        plot(exp(xline(indfreqhi+1:end)), exp(yline(indfreqhi+1:end)), ...
              'k--', 'HandleVisibility', 'off');
         limy = ylim;
         hpt = patch(2./[opt.filt.cutoff(2) opt.filt.cutoff(2) ...
