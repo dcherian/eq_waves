@@ -7,32 +7,68 @@ nn = 4;
 
 linestylemode = {'--', '-', '-.'}; % line style for theoretical modes.
 
+flatbot.IdealWMode(mm,nn,:,1) = flatbot.IdealWMode(mm,nn,:,1) * -1;
+
 figure;
-clf; hold on;
+hax = packfig(1,3);
+hax(1).NextPlot = 'add';
+hax(2).NextPlot = 'add';
+hax(3).NextPlot = 'add';
+
+axes(hax(1));
+plot(flatbot.Twoa{mm,nn}./max(flatbot.Twoa{mm,nn}), -1 * flatbot.Zwoa);
+plot(hax(1), squeeze(flatbot.dTdz(mm,nn,:)) ...
+     ./max(squeeze(flatbot.dTdz(mm,nn,:))), -1*flatbot.zTmode, 'k-');
+
 for ii=1:3
+    axes(hax(2));
+    mode = squeeze(flatbot.IdealWMode(mm, nn, :, ii));
+    plot(-1 * mode./max(abs(mode)), -1 * flatbot.zTmode, ...
+         'Color', 'k', 'LineStyle', linestylemode{ii});
+
+    axes(hax(3));
     mode = squeeze(flatbot.IdealTempMode(mm, nn, :, ii));
     plot(mode./max(mode), -1 * flatbot.zTmode, ...
          'Color', 'k', 'LineStyle', linestylemode{ii})
 end
-hax = gca;
-hax.XAxisLocation = 'top';
-ylim([-1000 0])
-xlim([-0.25 1]);
-yticks = hax.YTick;
-liney([-1 -25 -50 -75 -100 -125 -150 -200 -250 -300 -500 -750]);
-hax.YTick = yticks;
-legend('T_{bc1}', 'T_{bc2}', 'T_{bc3}', 'Location', 'SouthEast');
-linex(0);
-resizeImageForPub('onecolumn');
-hax.Position(2) = 0.05;
-pbaspect([1 1.615 1]);
-beautify([13 14 15], 'Times');
-xlabel({'Flat-bottom temp mode'; ...
-        ['amplitudes at ' getTitleString(flatbot.lon(mm), ...
-                                         flatbot.lat(nn))]});
-ylabel('Z (m)');
 
-export_fig -c[Inf,0,0,0] -despc2 images/flat-bottom-modes.pdf
+label = 'abc';
+for xx = 1:length(hax)
+    axes(hax(xx))
+    title(['(' label(xx) ')']);
+    hax(xx).XAxisLocation = 'top';
+    ylim([-1000 0])
+    xlim([-0.25 1]);
+    yticks = hax(xx).YTick;
+    hly = liney([-1 -25 -50 -75 -100 -125 -150 -200 -250 -300 -500 -750]);
+    hax(xx).YTick = yticks;
+    hx0 = linex(0);
+    uistack([hly hx0], 'bottom');
+    pbaspect([1 1.615 1]);
+    if xx == 1
+        hleg(1) = legend('T', 'dT/dz', 'Location', 'SouthEast');
+    end
+    if xx == 2
+        hleg(2) = legend('w_{bc1}', 'w_{bc2}', 'w_{bc3}', 'Location', ...
+                         'SouthEast');
+    end
+    if xx == 3
+        hleg(3) = legend('T_{bc1}', 'T_{bc2}', 'T_{bc3}', 'Location', ...
+                         'SouthEast');
+    end
+    beautify([13 14 15], 'Times');
+end
+
+resizeImageForPub('portrait');
+hax(1).YLabel.String = 'Z (m)';
+[supax] = suplabel(['Flat-bottom w and T mode amplitudes at ' ...
+                    getTitleString(flatbot.lon(mm), flatbot.lat(nn))], ...
+                     't');
+axes(supax); beautify([13 14 15], 'Times');
+supax.Position(4) = 0.8;
+hleg(3).Position(1) = 0.8;
+
+export_fig -c[Inf,0,Inf,0] -despc2 images/flat-bottom-modes.pdf
 
 %% dynht spectrum with filter bounds
 

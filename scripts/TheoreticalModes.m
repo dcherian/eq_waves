@@ -132,6 +132,7 @@ function [] = TheoreticalModes()
 
           flatbot.etopoDepth(mm,nn) = etDepth;
           flatbot.N2(mm,nn,:) = N2;
+          flatbot.dTdz(mm,nn,:) = dtdz;
           flatbot.IdealWMode(mm,nn,:,:) = Vmode;
           flatbot.IdealTempMode(mm,nn,:,:) = Tmode;
           flatbot.Twoa{mm,nn} = T;
