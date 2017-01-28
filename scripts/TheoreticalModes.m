@@ -118,12 +118,12 @@ function [] = TheoreticalModes()
           N2(N2 < 0) = min(abs(N2(:)));
           N2(indbot-1:end) = NaN;
 
-          % Vmode = vertical velocity mode shape
-          [Vmode, ~, ~] = vertmode(N2(1:indbot-2), ...
+          % Wmode = vertical velocity mode shape
+          [Wmode, ~, ~] = vertmode(N2(1:indbot-2), ...
                                    woa.Z(1:indbot-1),3,0);
-          Vmode(indbot-1:length(Zmode),:) = NaN; % extend to bottom
+          Wmode(indbot-1:length(Zmode),:) = NaN; % extend to bottom
                                                  % calculate temperature mode shape
-          Tmode = Vmode .* repmat(dtdz,1,size(Vmode,2));
+          Tmode = Wmode .* repmat(dtdz,1,size(Wmode,2));
 
           % make sure maximum is always positive.
           sgn = -1 * ~(max(Tmode) == max(abs(Tmode)));
