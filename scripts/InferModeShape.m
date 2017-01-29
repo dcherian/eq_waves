@@ -131,14 +131,14 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           % figure out phase with depth
           [~,maxDepth] = max(modes.InferredModeOLS{mm,nn});
           phaselag = nan(length(modes.InferredModeOLS{mm,nn}), 1);
-          omega = mean(opt.filt.cutoff/2);
+          omega = 2*pi/mean(opt.filt.cutoff/2);
           for ii=1:length(modes.InferredModeOLS{mm,nn})
               [c, lags, delay(ii)] = GappyCorrelation(Tfilt(ii,:), ...
                                                       Tfilt(maxDepth,:));
 
-              % in degrees
-              phaselag(ii) = atan2( tan(...
-                  2*pi/omega * delay(ii)), 1) * 180/pi;
+              % phaselag in degrees; -180 <= phaselag <= 180
+              % delay is in days; omega is in cpd.
+              phaselag(ii) = atan2(tan(omega * delay(ii)), 1) * 180/pi;
           end
 
           modes.phaselag{mm,nn} = phaselag;
