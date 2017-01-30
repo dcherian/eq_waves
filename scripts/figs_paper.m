@@ -222,3 +222,35 @@ end
 hax.YAxis.TickLabelFormat = '%g^o';
 
 export_fig -c[Inf,0,Inf,0] -despc2 images/bathy-mooring-locations.pdf
+
+%% phase lag plot
+
+mm = 5; nn = 4;
+[~, plotopt] = DefaultOptions;
+plotopt.plotPhaseLag = 1;
+plotopt.MarkWaterDepth = 0;
+
+figure;
+hax = packfig(1,2);
+PlotMode('bc2m1-butterworth', mm, nn, plotopt, hax(1));
+legend('off');
+beautify([12 13 14], 'Times');
+
+mm = 10; nn = 4;
+PlotMode('bc2m1-butterworth', mm, nn, plotopt, hax(2));
+beautify([12 13 14], 'Times');
+
+linkaxes(hax, 'xy');
+hax(1).YLim = [-600 0];
+hax(1).XLim = [-0.5 1.2]*1;
+hax(1).YLabel.String = 'Depth (m)';
+
+pbaspect(hax(1), [1 1.412 1]);
+pbaspect(hax(2), [1 1.412 1]);
+
+set(gcf, 'Position', [360   325   540   373]);
+hax(1).Position(2) = 0.06;
+hax(2).Position(2) = 0.06;
+axes(hax(2)); hleg = legend; hleg.Position(1) = 0.7;
+resizeImageForPub('portrait')
+savepdf('images/phase-lag.pdf');
