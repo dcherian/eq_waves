@@ -1,8 +1,9 @@
 %  [handles] = PlotMode(modename, mm, nn, plotopt, hax)
-function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
+function [handles] = PlotMode(modename, mm, nn, plotopt, hax, isMap)
 
     if ~exist('mm', 'var'), mm = 1; end
     if ~exist('nn', 'var'), nn = 1; end
+    if ~exist('isMap', 'var'), isMap = 0; end
 
     linewidth = 1;
     capwidth = 12;
@@ -68,9 +69,8 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         figure;
         set(gcf, 'Position', [520 118 650 680]);
         hax = gca;
-        providedHax = 0;
     else
-        providedHax = 1;
+        if ~isMap,  axes(hax); end
     end
 
     %hax.PlotBoxAspectRatio = [1 1 1]; %[0.5 1.2 0.2294];
@@ -112,8 +112,8 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
         phasedepth = modes.depth{mm,nn}(~isnan(phaselag));
         phaselag = phaselag(~isnan(phaselag));
         handles.hlag = plot(hax, phaselag/180, -phasedepth, ...
-                            '.-', 'Color', green, ...
-                            'MarkerSize', 12, ...
+                            'o-', 'Color', green, ...
+                            'MarkerSize', 8, ...
                             'LineWidth', linewidth, ...
                             'DisplayName', 'Phase lag/180^o');
     end
@@ -153,7 +153,7 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax)
                  'DisplayName', 'Corr. Coeff.');
     end
 
-    if ~providedHax
+    if ~isMap
         if isfield(modes, 'lon')
             title(getTitleString(modes.lon(mm), modes.lat(nn)))
         end

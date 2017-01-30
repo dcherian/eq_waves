@@ -100,7 +100,7 @@ function [hax, supax] = PlotModeMap(plotopt, lonrange, latrange, modes, opt)
           ax.YTickLabels{1} = '';
           ax.XTick = [0 1];
 
-          handles = PlotMode(modes, mm, nn, plotopt, ax);
+          handles = PlotMode(modes, mm, nn, plotopt, ax, 1);
 
           ax.XLabel.Color = labelcolor;
           ax.YLabel.Color = labelcolor;
