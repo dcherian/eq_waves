@@ -1,3 +1,31 @@
+%% more mode shapes
+load('./flat-bot-modes.mat');
+
+figure;
+hold on;
+n_mode = 2;
+ilon = [5 11];
+ilat = [4 4];
+for ii=1:length(ilon)
+    mm = ilon(ii);
+    nn = ilat(ii);
+    mode = squeeze(flatbot.IdealTempMode(mm, nn, :, n_mode));
+    plot(mode./max(mode), -1 * flatbot.zTmode, ...
+         'DisplayName', getTitleString(flatbot.lon(mm), flatbot.lat(nn)));
+end
+legend('Location', 'SouthEast');
+linex(0);
+ylim([-2500 0]);
+xlim([-0.15 1]);
+beautify([12 13 14], 'Times');
+resizeImageForPub('onecolumn');
+title('Mode-2 temperature mode shapes')
+ylabel('Depth (m)')
+hax = gca;
+hax.XAxisLocation = 'top';
+
+export_fig -c[Inf,0,Inf,0] images/flat-bottom-modes-deeper.pdf
+
 %% typical mode shapes
 
 load('./flat-bot-modes.mat');
