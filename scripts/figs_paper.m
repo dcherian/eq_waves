@@ -116,6 +116,7 @@ htxt.delete;
 htxt = text(-0.66, 1.25, 'Inferred mode shapes', ...
             'FontSize', 16, 'FontName', 'Times', ...
             'Units', 'normalized');
+
 % deep flat-bottom temperature mode
 axes(hax(4))
 hax(4).Position(1) = 0.80;
@@ -123,17 +124,25 @@ hold on;
 n_mode = 2;
 ilon = [5 11];
 ilat = [4 4];
+colors = get(groot, 'DefaultAxesColorOrder');
 for ii=1:length(ilon)
     mm = ilon(ii);
     nn = ilat(ii);
     mode = squeeze(flatbot.IdealTempMode(mm, nn, :, n_mode));
     plot(mode./max(mode), -1 * flatbot.zTmode, ...
-         'DisplayName', getTitleString(flatbot.lon(mm), flatbot.lat(nn)));
+         'DisplayName', ...
+         ['T-mode ' getTitleString(flatbot.lon(mm),  flatbot.lat(nn))], ...
+         'Color', colors(ii,:));
+    mode = squeeze(flatbot.IdealUMode(mm, nn, :, n_mode));
+    plot(mode./max(abs(mode)), -1 * flatbot.zTmode, ...
+         'DisplayName', ...
+         ['u-mode ' getTitleString(flatbot.lon(mm), flatbot.lat(nn))], ...
+         'LineStyle', '--', 'Color', colors(ii,:));
 end
 hleg1 = legend('Location', 'SouthEast');
 linex(0);
-ylim([-2500 0]);
-xlim([-0.15 1]);
+ylim([-3500 0]);
+xlim([-1 1]);
 beautify([12 13 14], 'Times');
 title('(f) T_{bc2}')
 ylabel('z (m)')
