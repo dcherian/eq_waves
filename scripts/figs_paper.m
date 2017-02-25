@@ -147,24 +147,26 @@ hax(1) = subplot(211);
 hax(2) = subplot(212);
 kk = 1;
 
-for mm = [8 10]
-    for nn = [4]
-        data = ReadTaoTriton(mm,nn);
-        EstimateNoiseSpectrum(data.dht{mm,nn}, opt, 1, hax(kk));
-        hax(kk).Title.String = getTitleString(data.lon(mm),data.lat(nn));
-        %EstimateNoiseSpectrum(data.dht{mm,nn}, opt, 1, hax(kk+2));
-        if kk == 1
-            legend('off');
-            xlabel('');
-        else
-            hleg = legend;
-            hleg.String{1} = 'Dyn. ht.';
-            hleg.String{2} = 'Filtered dyn. ht.';
-            hleg.Position = [ 0.5741    0.2905    0.4407    0.1810];
-        end
+ilon = [4 11];
+ilat = [7 7];
+for ii = 1:length(ilon)
+    mm = ilon(ii);
+    nn = ilat(ii);
+    data = ReadTaoTriton(mm,nn);
+    EstimateNoiseSpectrum(data.dht{mm,nn}, opt, 1, hax(kk));
+    hax(kk).Title.String = getTitleString(data.lon(mm),data.lat(nn));
+    %EstimateNoiseSpectrum(data.dht{mm,nn}, opt, 1, hax(kk+2));
+    if kk == 1
+        legend('off');
+        xlabel('');
+    else
+        hleg = legend;
+        hleg.String{1} = 'Dyn. ht.';
+        hleg.String{2} = 'Filtered dyn. ht.';
+        hleg.Position = [ 0.5741    0.2905    0.4407    0.1810];
+    end
         axes(hax(kk)); beautify([12 13 14], 'Times');
         kk = kk+1;
-    end
 end
 linkaxes(hax, 'xy');
 hax(1).XLim = [0.05 0.5];
