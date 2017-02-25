@@ -38,7 +38,7 @@ function [out] = FilterSeries(in, opt)
                 % plot filtered time series and step response
                 axes(hax);
                 plot(range, out(range), '-', 'Color', hax.ColorOrder(1,:))
-                [h,t] = stepz(b, a, length(range), 1);
+                [h,t] = stepz(opt.b, opt.a, length(range), 1);
                 h = h./max(abs(h));
                 plot(range, (h + flip(h)).*nanmax(segment)/2, '-', ...
                      'Color', hax.ColorOrder(3,:))

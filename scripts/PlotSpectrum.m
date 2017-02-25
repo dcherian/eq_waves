@@ -4,8 +4,8 @@ function [hplt] = PlotSpectrum(in, SubsetLength, hax)
     if ~exist('SubsetLength', 'var'), SubsetLength = []; end
 
     [S, F] = GappySpectrum(in, SubsetLength);
-    axes(hax); hold on;
-    hplt = plot(F, S);
+    axes(hax); hold on; length(F)
+    hplt = plot(F, S, '.-');
     hax.XScale = 'log';
     hax.YScale = 'log';
 
