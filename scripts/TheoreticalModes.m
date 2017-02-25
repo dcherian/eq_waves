@@ -119,10 +119,12 @@ function [] = TheoreticalModes()
           N2(indbot-1:end) = NaN;
 
           % Wmode = vertical velocity mode shape
-          [Wmode, ~, ~] = vertmode(N2(1:indbot-2), ...
-                                   woa.Z(1:indbot-1),3,0);
+          [Wmode, Umode, ~] = vertmode(N2(1:indbot-2), ...
+                                       woa.Z(1:indbot-1),3,0);
           Wmode(indbot-1:length(Zmode),:) = NaN; % extend to bottom
-                                                 % calculate temperature mode shape
+          Umode(indbot-1:length(Zmode),:) = NaN; % extend to bottom
+
+          % calculate temperature mode shape
           Tmode = Wmode .* repmat(dtdz,1,size(Wmode,2));
 
           % make sure maximum is always positive.
@@ -133,7 +135,8 @@ function [] = TheoreticalModes()
           flatbot.etopoDepth(mm,nn) = etDepth;
           flatbot.N2(mm,nn,:) = N2;
           flatbot.dTdz(mm,nn,:) = dtdz;
-          flatbot.IdealWMode(mm,nn,:,:) = Vmode;
+          flatbot.IdealWMode(mm,nn,:,:) = Wmode;
+          flatbot.IdealUMode(mm,nn,:,:) = Umode;
           flatbot.IdealTempMode(mm,nn,:,:) = Tmode;
           flatbot.Twoa{mm,nn} = T;
           flatbot.Swoa{mm,nn} = S;
