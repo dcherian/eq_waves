@@ -1,44 +1,23 @@
 %% more mode shapes
 load('./flat-bot-modes.mat');
+label = 'abcdefg';
 
-figure;
-hold on;
-n_mode = 2;
-ilon = [5 11];
-ilat = [4 4];
-for ii=1:length(ilon)
-    mm = ilon(ii);
-    nn = ilat(ii);
-    mode = squeeze(flatbot.IdealTempMode(mm, nn, :, n_mode));
-    plot(mode./max(mode), -1 * flatbot.zTmode, ...
-         'DisplayName', getTitleString(flatbot.lon(mm), flatbot.lat(nn)));
+hfig = figure;
+for ii=1:8
+    hax(ii) = subplot(2,4,ii);
 end
-legend('Location', 'SouthEast');
-linex(0);
-ylim([-2500 0]);
-xlim([-0.15 1]);
-beautify([12 13 14], 'Times');
-resizeImageForPub('onecolumn');
-title('Mode-2 temperature mode shapes')
-ylabel('Depth (m)')
-hax = gca;
-hax.XAxisLocation = 'top';
+hax(4) = subplot(2,4, [4 8]);
+hax(6).delete;
+resizeImageForPub('portrait');
+hfig.Position(4) = 600;
 
-export_fig -c[Inf,0,Inf,0] images/flat-bottom-modes-deeper.pdf
-
-%% typical mode shapes
-
-load('./flat-bot-modes.mat');
-
+% typical mode shapes
 mm = 11;
 nn = 4;
 
 linestylemode = {'--', '-', '-.'}; % line style for theoretical modes.
-
 flatbot.IdealWMode(mm,nn,:,1) = flatbot.IdealWMode(mm,nn,:,1) * -1;
 
-figure;
-hax = packfig(1,3);
 hax(1).NextPlot = 'add';
 hax(2).NextPlot = 'add';
 hax(3).NextPlot = 'add';
@@ -60,10 +39,9 @@ for ii=1:3
          'Color', 'k', 'LineStyle', linestylemode{ii})
 end
 
-label = 'abc';
-for xx = 1:length(hax)
+for xx = 1:3
     axes(hax(xx))
-    title(['(' label(xx) ')']);
+    hax(xx).Position(3) = 0.16;
     hax(xx).XAxisLocation = 'top';
     ylim([-1000 0])
     xlim([-0.25 1]);
@@ -72,32 +50,98 @@ for xx = 1:length(hax)
     hax(xx).YTick = yticks;
     hx0 = linex(0);
     uistack([hly hx0], 'bottom');
-    pbaspect([1 1.615 1]);
+    pbaspect([1 2.5 1]);
     if xx == 1
-        hleg(1) = legend('T', 'dT/dz', 'Location', 'SouthEast');
+        hleg2 = legend('$\bar{T}$', '$d\bar{T}/dz$',...
+                       'Location', 'SouthEast');
+        xlabel(['(a) Mean state']);
+        hleg2.Position = [0.230 0.5817 0.1333 0.0575];
+    else
+        hax(xx).YTickLabels = {};
     end
     if xx == 2
-        hleg(2) = legend('w_{bc1}', 'w_{bc2}', 'w_{bc3}', 'Location', ...
-                         'SouthEast');
+        legend('off');
+        %hleg(2) = legend('w_{bc1}', 'w_{bc2}', 'w_{bc3}', 'Location', ...
+        %'SouthEast');
+        xlabel(['(b) $w$ mode']);
     end
     if xx == 3
-        hleg(3) = legend('T_{bc1}', 'T_{bc2}', 'T_{bc3}', 'Location', ...
-                         'SouthEast');
+        hleg4 = legend('bc1', 'bc2', 'bc3', 'Location', ...
+                       'SouthEast');
+        xlabel(['(c) $T$ mode']);
+        hleg4.Position = [0.4 0.5800 0.1111 0.0833];
     end
     beautify([13 14 15], 'Times');
 end
 
-resizeImageForPub('portrait');
-hax(1).YLabel.String = 'Z (m)';
-[supax] = suplabel(['Flat-bottom w and T mode amplitudes at ' ...
-                    getTitleString(flatbot.lon(mm), flatbot.lat(nn))], ...
-                     't');
-axes(supax); beautify([13 14 15], 'Times');
-supax.Position(4) = 0.8;
-hleg(3).Position(1) = 0.8;
+hax(1).YLabel.String = 'z (m)';
+hleg2.Interpreter = 'latex';
+hax(2).XLabel.Interpreter = 'latex';
+hax(3).XLabel.Interpreter = 'latex';
 
-export_fig -c[Inf,0,Inf,0] -despc2 images/flat-bottom-modes.pdf
+% inferred mode with phase lag plot
+mm = 5; nn = 4;
+[~, plotopt] = DefaultOptions;
+plotopt.plotPhaseLag = 1;
+plotopt.MarkWaterDepth = 0;
 
+PlotMode('bc2m1-butterworth', mm, nn, plotopt, hax(5));
+legend('off');
+xlabel(['(d) ' hax(5).Title.String])
+hax(5).Title.delete;
+beautify([12 13 14], 'Times');
+
+mm = 10; nn = 4;
+PlotMode('bc2m1-butterworth', mm, nn, plotopt, hax(7));
+xlabel(['(e) ' hax(7).Title.String])
+hax(7).Title.delete;
+hleg5 = legend;
+hleg5.Position = [0.2482    0.100    0.2389    0.1258];
+hleg5.String{1} = ['T_{infer}'];
+beautify([12 13 14], 'Times');
+
+linkaxes(hax([5 7]), 'xy')
+hax(5).YLim = [-600 0];
+hax(5).XLim = [-0.5 1.2]*1;
+hax(5).YLabel.String = 'z (m)';
+
+hax(5).Position(2) = 0.07;
+hax(7).Position(2) = 0.07;
+hax(5).Position(3) = 0.24;
+hax(7).Position(3) = 0.24;
+hax(7).Position(1) = 0.47;
+hax(7).YTickLabels = {};
+
+htxt.delete;
+htxt = text(-0.66, 1.25, 'Inferred mode shapes', ...
+            'FontSize', 16, 'FontName', 'Times', ...
+            'Units', 'normalized');
+% deep flat-bottom temperature mode
+axes(hax(4))
+hax(4).Position(1) = 0.80;
+hold on;
+n_mode = 2;
+ilon = [5 11];
+ilat = [4 4];
+for ii=1:length(ilon)
+    mm = ilon(ii);
+    nn = ilat(ii);
+    mode = squeeze(flatbot.IdealTempMode(mm, nn, :, n_mode));
+    plot(mode./max(mode), -1 * flatbot.zTmode, ...
+         'DisplayName', getTitleString(flatbot.lon(mm), flatbot.lat(nn)));
+end
+hleg1 = legend('Location', 'SouthEast');
+linex(0);
+ylim([-2500 0]);
+xlim([-0.15 1]);
+beautify([12 13 14], 'Times');
+title('(f) T_{bc2}')
+ylabel('z (m)')
+hax(4).XAxisLocation = 'top';
+pbaspect([1 4 1]);
+hleg1.Position(2) = 0.10;
+
+savepdf('images/multi-panel-modes.pdf');
 %% dynht spectrum with filter bounds
 
 [opt,~] = DefaultOptions;
@@ -252,35 +296,3 @@ end
 hax.YAxis.TickLabelFormat = '%g^o';
 
 export_fig -c[Inf,0,Inf,0] -despc2 images/bathy-mooring-locations.pdf
-
-%% phase lag plot
-
-mm = 5; nn = 4;
-[~, plotopt] = DefaultOptions;
-plotopt.plotPhaseLag = 1;
-plotopt.MarkWaterDepth = 0;
-
-figure;
-hax = packfig(1,2);
-PlotMode('bc2m1-butterworth', mm, nn, plotopt, hax(1));
-legend('off');
-beautify([12 13 14], 'Times');
-
-mm = 10; nn = 4;
-PlotMode('bc2m1-butterworth', mm, nn, plotopt, hax(2));
-beautify([12 13 14], 'Times');
-
-linkaxes(hax, 'xy');
-hax(1).YLim = [-600 0];
-hax(1).XLim = [-0.5 1.2]*1;
-hax(1).YLabel.String = 'Depth (m)';
-
-pbaspect(hax(1), [1 1.412 1]);
-pbaspect(hax(2), [1 1.412 1]);
-
-set(gcf, 'Position', [360   325   540   373]);
-hax(1).Position(2) = 0.06;
-hax(2).Position(2) = 0.06;
-axes(hax(2)); hleg = legend; hleg.Position(1) = 0.7;
-resizeImageForPub('portrait')
-savepdf('images/phase-lag.pdf');
