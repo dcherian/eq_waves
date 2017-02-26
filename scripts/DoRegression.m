@@ -14,12 +14,14 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
     stdError = dof;
 
     % 1. generate numMC noise time series
-    noise = synthetic_timeseries_known_spectrum( ...
-        [length(dhtinput) opt.numMC], 1, NoiseAmp, NoiseSlope);
+    if ~opt.TagainstDHT
+        noise = synthetic_timeseries_known_spectrum( ...
+            [length(dhtinput) opt.numMC], 1, NoiseAmp, NoiseSlope);
+    end
 
     for ii = 1:nz
-        dht = dhtinput;
-        T = Tinput(ii,:);
+        dht = dhtinput - nanmean(dhtinput);
+        T = Tinput(ii,:) - nanmean(Tinput(ii,:));
 
         % find all nan's in both datasets
         mask = ~(isnan(dht) | isnan(T));
@@ -42,33 +44,28 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
         % use 0.01 C error on temperature
         % (Tom's suggestion).
         if opt.TagainstDHT
-            rrwtls = mf_wtls(1./dht', T', 0.1, 0.01, 0);
+            rrwtls = mf_wtls(dht', T', 0.1, 0.01, 0);
 
             [rrols([3 1]), rrols([4 2]), ~, stderr] = ...
-                dcregress(dht'-nanmean(dht), T'-nanmean(T), NaN, ...
+                dcregress(dht', T', NaN, ...
                           0, opt.debugRegression, 0);
 
+            noise = synthetic_timeseries_known_spectrum( ...
+                [length(dhtinput) opt.numMC], 1, ...
+                NoiseAmp(ii), NoiseSlope(ii));
+
+            m = MonteCarloRegression(dht, rrols(1), noise, opt);
         else
             rrwtls = mf_wtls(T', dht', 0.01, 0.5, 0);
 
-            [rrols([3 1]), rrols([4 2]), ~] = ...
-                dcregress(T'-nanmean(T), dht', [], ...
+            [rrols([3 1]), rrols([4 2]), ~, stderr] = ...
+                dcregress(T', dht', [], ...
                           0, opt.debugRegression, 0);
+
+            m = MonteCarloRegression(T, rrols(1), noise, opt);
         end
         infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
 
-        % Monte Carlo error estimation
-        ticstart = tic;
-        disp('Monte Carlo error estimation');
-        for mc=1:opt.numMC
-            y = rrols(1)*dht' + BandPass(noise(:,mc), opt.filt);
-            coeff = dcregress(dht, y, NaN, 0, 0, 0, 0);
-            m(mc) = coeff(2);
-        end
-        toc(ticstart);
-
-        % infer_mode_error(ii,1:2) = [1.96*stderr(2)*opt.SlopeSigma
-        % rrwtls(2)];
         % symmetric 95% confidence interval from distribution of
         % regression slopes from Monte Carlo simulation.
         infer_mode_error(ii,1) = mean(abs(rrols(1) - calc95(m)));
@@ -96,4 +93,18 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
             end
         end
     end
+end
+
+% Monte Carlo error estimation
+function [m] = MonteCarloRegression(x, slope, noise, opt)
+
+    ticstart = tic;
+    disp('Monte Carlo error estimation');
+    for mc=1:size(noise, 2)
+        y = slope*x' + BandPass(noise(:,mc), opt.filt);
+        coeff = dcregress(x, y, NaN, 0, 0, 0, 0);
+        m(mc) = coeff(2);
+    end
+    toc(ticstart);
+
 end

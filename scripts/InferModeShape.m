@@ -28,6 +28,8 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
 
   for mm=lonrange
       for nn=latrange
+          disp([mm nn])
+
           if isempty(data.dht{mm,nn}) | isempty(data.T{mm,nn})
               continue;
           end
@@ -37,7 +39,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           % First do Bandpass filtering
           dhtfilt = BandPass(dht, opt.filt);
 
-          if opt.TagainstDHT
+          if ~opt.TagainstDHT
               [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(dht, opt);
           end
 
@@ -53,9 +55,6 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           % 1. Filter temperature,
           % 2. Estimate background noise spectrum for temperature
           clear Tfilt
-          if ~opt.TagainstDHT
-              clear NoiseAmp NoiseSlope
-          end
 
           for ii = 1:length(modes.depth{mm,nn})
               data.T{mm,nn}(ii,:) = fill_gap(data.T{mm,nn}(ii,:), ...
@@ -66,7 +65,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
                   Tfilt(ii,:) = data.T{mm,nn}(ii,:);
               end
 
-              if ~opt.TagainstDHT
+              if opt.TagainstDHT
                   [NoiseAmp(ii), NoiseSlope(ii)] = ...
                       EstimateNoiseSpectrum(data.T{mm,nn}(ii,:), opt);
               end
