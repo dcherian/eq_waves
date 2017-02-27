@@ -14,16 +14,18 @@ function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
 
     indfreqlo = find(freq > min(2./opt.filt.cutoff), 1, 'first')-1;
     if useHiFreq
-        find(freq < max(2./opt.filt.cutoff), 1, 'last')+1;
+        indfreqhi = find(freq < max(2./opt.filt.cutoff), 1, 'last')+1;
     else
         indfreqhi = length(S);
     end
-    assert(freq(indfreqlo) < min(2./opt.filt.cutoff));
-    assert(freq(indfreqhi) > max(2./opt.filt.cutoff));
+    assert(freq(indfreqlo) <= min(2./opt.filt.cutoff));
+    assert(freq(indfreqhi) >= max(2./opt.filt.cutoff));
 
     S(indfreqlo:indfreqhi) = NaN;
     freqreg = freq;
     freqreg(indfreqlo:indfreqhi) = NaN;
+    % S(1:4) = NaN;
+    % freqreg(1:4) = NaN;
 
     [coeff] = dcregress(log(freqreg), log(S), NaN, 0, 0, 0, 0);
     NoiseAmp = exp(coeff(1));

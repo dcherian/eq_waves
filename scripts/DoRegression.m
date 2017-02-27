@@ -54,7 +54,9 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
                 [length(dhtinput) opt.numMC], 1, ...
                 NoiseAmp(ii), NoiseSlope(ii));
 
-            m = MonteCarloRegression(dht, rrols(1), noise, opt);
+            m = MonteCarloRegression(dht, T, ...
+                                     rrols(1), rrols(3), ...
+                                     noise, opt);
         else
             rrwtls = mf_wtls(T', dht', 0.01, 0.5, 0);
 
@@ -62,10 +64,12 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
                 dcregress(T', dht', [], ...
                           0, opt.debugRegression, 0);
 
-            m = MonteCarloRegression(T, rrols(1), noise, opt);
+            m = MonteCarloRegression(T, dht, ...
+                                     rrols(1), rrols(3), ...
+                                     noise, opt);
         end
+        rrols(1) = nanmean(m);
         infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
-
         % symmetric 95% confidence interval from distribution of
         % regression slopes from Monte Carlo simulation.
         infer_mode_error(ii,1) = mean(abs(rrols(1) - calc95(m)));
@@ -96,15 +100,24 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
 end
 
 % Monte Carlo error estimation
-function [m] = MonteCarloRegression(x, slope, noise, opt)
+function [m] = MonteCarloRegression(x, y0, slope, intercept, noise, opt)
 
     ticstart = tic;
     disp('Monte Carlo error estimation');
+    m = nan([1 size(noise,2)]);
     for mc=1:size(noise, 2)
-        y = slope*x' + BandPass(noise(:,mc), opt.filt);
+        noisevec = BandPass(noise(:,mc), opt.filt);
+        y =  slope*x' + intercept + noisevec;
         coeff = dcregress(x, y, NaN, 0, 0, 0, 0);
         m(mc) = coeff(2);
     end
     toc(ticstart);
-
+    % hold on; histogram(m); linex(slope);
+    % keyboard;
+    % PlotSpectrum(slope*x+intercept);
+    % PlotSpectrum(noise(:,mc));
+    % PlotSpectrum(BandPass(noise(:,mc), opt.filt));
+    % PlotSpectrum(y);
+    % PlotSpectrum(y0);
+    % legend('slope*x', 'noise', 'noise filt', 'y', 'T');
 end
