@@ -6,11 +6,6 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
   disp('Inferring mode shapes');
 
   if ~exist('data', 'var'), error('Provide data.'); end
-  if strcmpi(opt.name, 'montecarlo')
-      isMonteCarlo = 1;
-  else
-      isMonteCarlo = 0;
-  end
 
   nlon = length(data.lon);
   nlat = length(data.lat);
@@ -98,27 +93,19 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
 
           % normalize mode shapes if not monte-carlo
           % first OLS
-          if isMonteCarlo
-              imnorm = 1;
-          else
-              imnorm = findNormalization(infer_mode(:,1));
-          end
+          imnorm = findNormalization(infer_mode(:,1));
           modes.InferredModeOLS{mm,nn} = infer_mode(:,1)./imnorm;
           modes.InferredModeErrorOLS{mm,nn} = ...
               infer_mode_error(:,1)./imnorm;
           modes.StdErrorOLS{mm,nn} = stderr./imnorm;
 
           % now WTLS
-          if isMonteCarlo
-              imnorm = 1;
-          else
-              imnorm = findNormalization(infer_mode(:,2));
-          end
+          imnorm = findNormalization(infer_mode(:,2));
           modes.InferredModeWTLS{mm,nn} = infer_mode(:,2)./imnorm;
           modes.InferredModeErrorWTLS{mm,nn} = ...
               infer_mode_error(:,2)./imnorm;
 
-          if ~isMonteCarlo & any(cut_nan(modes.InferredModeOLS{mm,nn}) > 1)
+          if any(cut_nan(modes.InferredModeOLS{mm,nn}) > 1)
               warning('OLS regression ampl > 1');
               keyboard;
           end
@@ -160,8 +147,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
                    'Tstd = standard dev of temp time series at depth'];
 
   % don't overwrite if *not* inferring at all locations
-  if ~isMonteCarlo & ...
-          isequal(lonrange, 1:nlon) & isequal(latrange, 1:nlat)
+  if isequal(lonrange, 1:nlon) & isequal(latrange, 1:nlat)
       hash = githash([mfilename('fullpath') '.m']);
       disp('Saving mode structures');
       save([opt.name '-' opt.filt.window '.mat'], ...
