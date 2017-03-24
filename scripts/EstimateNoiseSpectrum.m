@@ -8,24 +8,32 @@ function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
 
     useHiFreq = 0;
     if ~exist('plotflag', 'var'), plotflag = 0; end
+    if ~exist('opt', 'var'), opt = []; end
 
     SubsetLength = []; 256;
     [S, freq] = GappySpectrum(in, SubsetLength);
 
-    indfreqlo = find(freq > min(2./opt.filt.cutoff), 1, 'first')-1;
-    if useHiFreq
-        indfreqhi = find(freq < max(2./opt.filt.cutoff), 1, 'last')+1;
-    else
+    % if opt is not provided, use full spectrum for fit
+    if isempty(opt)
+        indfreqlo = length(S);
         indfreqhi = length(S);
-    end
-    assert(freq(indfreqlo) <= min(2./opt.filt.cutoff));
-    assert(freq(indfreqhi) >= max(2./opt.filt.cutoff));
+        freqreg = freq;
+    else
+        indfreqlo = find(freq > min(2./opt.filt.cutoff), 1, 'first')-1;
+        if useHiFreq
+            indfreqhi = find(freq < max(2./opt.filt.cutoff), 1, 'last')+1;
+        else
+            indfreqhi = length(S);
+        end
+        assert(freq(indfreqlo) <= min(2./opt.filt.cutoff));
+        assert(freq(indfreqhi) >= max(2./opt.filt.cutoff));
 
-    S(indfreqlo:indfreqhi) = NaN;
-    freqreg = freq;
-    freqreg(indfreqlo:indfreqhi) = NaN;
-    % S(1:4) = NaN;
-    % freqreg(1:4) = NaN;
+        S(indfreqlo:indfreqhi) = NaN;
+        freqreg = freq;
+        freqreg(indfreqlo:indfreqhi) = NaN;
+        % S(1:4) = NaN;
+        % freqreg(1:4) = NaN;
+    end
 
     [coeff] = dcregress(log(freqreg), log(S), NaN, 0, 0, 0, 0);
     NoiseAmp = exp(coeff(1));
@@ -46,24 +54,34 @@ function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
         else
             axes(hax);
         end
-        PlotSpectrum(in, SubsetLength);
-        PlotSpectrum(BandPass(in, opt.filt), SubsetLength);
+        hh = PlotSpectrum(in, SubsetLength);
+        hh.DisplayName = 'Input';
+
+        if ~isempty(opt)
+            hh = PlotSpectrum(BandPass(in, opt.filt), SubsetLength);
+            hh.DisplayName = 'Filtered input';
+        end
+
         hplt = PlotSpectrum(tseries, SubsetLength);
-        plot(exp(xline(1:indfreqlo)), exp(yline(1:indfreqlo)), 'k');
+        hplt.DisplayName = 'Generated noise';
+
+        plot(exp(xline(1:indfreqlo)), exp(yline(1:indfreqlo)), 'k', ...
+             'DisplayName', 'Straight line fit');
         plot(exp(xline(indfreqlo+1:indfreqhi)), exp(yline(indfreqlo+1:indfreqhi)), ...
              'k--', 'HandleVisibility', 'off');
         plot(exp(xline(indfreqhi+1:end)), exp(yline(indfreqhi+1:end)), ...
              'k--', 'HandleVisibility', 'off');
         limy = ylim;
-        hpt = patch(2./[opt.filt.cutoff(2) opt.filt.cutoff(2) ...
-                        opt.filt.cutoff(1) opt.filt.cutoff(1) ...
-                        opt.filt.cutoff(2)], ...
-                    [min(ylim) max(ylim) max(ylim) ...
-                     min(ylim) min(ylim)], ...
-                    'k', 'EdgeColor', 'none', 'FaceAlpha', 0.1);
-        legend('Input', 'Filtered Input', 'Generated noise', ...
-               'Straight line fit', ...% 'Straight line extrapolated', ...
-               'Filter band', 'Location', 'NorthEast');
+        if ~isempty(opt)
+            hpt = patch(2./[opt.filt.cutoff(2) opt.filt.cutoff(2) ...
+                            opt.filt.cutoff(1) opt.filt.cutoff(1) ...
+                            opt.filt.cutoff(2)], ...
+                        [min(ylim) max(ylim) max(ylim) ...
+                         min(ylim) min(ylim)], ...
+                        'k', 'EdgeColor', 'none', 'FaceAlpha', 0.1, ...
+                        'DisplayName', 'Filter band');
+        end
+        legend('Location', 'NorthEast');
         axis('square');
         beautify;
         grid on;
