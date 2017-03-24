@@ -156,15 +156,6 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
   toc(ticstart);
 end
 
-function [range] = findCommonTimeRange(timedht, timetemp)
-
-    start = find(timetemp == timedht(1));
-    stop = find(timetemp == timedht(end));
-    range = start:stop;
-
-    assert(all(timetemp(range) == timedht));
-end
-
 function [norm] = findNormalization(shape)
 
     [norm,imax] = nanmax(shape);
