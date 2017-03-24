@@ -24,7 +24,8 @@ function [out] = FilterSeries(in, opt)
     out = nan(size(in));
     for ii=1:length(gapstart)
         range = start:gapstart(ii)-1;
-
+        % set start for next iteration to be end of current gap.
+        start = gapend(ii)+1;
         if isempty(range) | (length(range) < opt.N), continue; end
 
         % remove mean for each section and the filter.
@@ -60,9 +61,6 @@ function [out] = FilterSeries(in, opt)
             out(range(1) : min(range(1)+ceil(opt.N)+1, length(in))) = NaN;
             out( max(1,range(end)-ceil(opt.N)-1) : range(end)) = NaN;
         end
-
-        % set start for next iteration to be end of current gap.
-        start = gapend(ii)+1;
     end
 
     if debugflag
