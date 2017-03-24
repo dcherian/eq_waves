@@ -4,16 +4,17 @@
 %intercept = 0.2;
 
 function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
-                                       makePlot, len, xx)
+                                       makePlot, len, xx, spectralAmp)
 
-    numMC = 5e4;
+    numMC = 5e3;
 
     if ~exist('spectralSlope', 'var'), spectralSlope = -3; end
     if ~exist('DoBandPass', 'var'), DoBandPass = 1; end
     if ~exist('makePlot', 'var'), makePlot = 0; end
     if ~exist('len', 'var'), len = 5e3; end
+    if ~exist('spectralAmp', 'var'), spectralAmp = 1; end
     if ~exist('xx', 'var')
-        xx = synthetic_timeseries_known_spectrum(len, 1, 1, spectralSlope);
+        xx = synthetic_timeseries_known_spectrum(len, 1, spectralAmp, spectralSlope);
     end
 
     opt = DefaultOptions;
@@ -26,7 +27,6 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
         if makePlot
             subplot(212); plot(xx);
         end
-        xx = cut_nan(xx - nanmean(xx));
     end
 
     tic;
@@ -40,11 +40,16 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
         % ynoise = 0.2*max(abs(yy))*whitenoise(size(yy));
         % yy = yy + ynoise;
 
-        yy = synthetic_timeseries_known_spectrum(len, ...
-                                                 1, 1, spectralSlope);
+        yy = synthetic_timeseries_known_spectrum(len, 1, ...
+                                                 spectralAmp, spectralSlope);
+        if size(yy) ~= size(xx), yy = yy'; end
+
         if DoBandPass
             yy = BandPass(yy, opt.filt);
-            yy = cut_nan(yy - nanmean(yy));
+        end
+
+        if size(xx) ~= size(yy)
+            yy = yy';
         end
 
         [coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0);
@@ -56,9 +61,9 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
         % Draper & Smith pg. 36 eqn. (1.4.9)
         mdist(ii) = (m(ii)-0)/err(2);
 
-        rmat = corrcoef(cut_nan(xx), cut_nan(yy));
+        mask = isnan(xx) | isnan(yy);
+        rmat = corrcoef(xx(~mask), yy(~mask));
         r(ii)= rmat(1,2);
-
     end
 
     % the variable rdist == w (bendat piersol eqn. 4.58) is
@@ -108,8 +113,6 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
         FitDistrib = allfitdist(mdist, 'PDF');
         title(['Spectral Slope = ' num2str(spectralSlope) ' | DoBandPass ' ...
                '= ' num2str(DoBandPass)]);
-    else
-        FitDistrib = allfitdist(mdist);
     end
 
     % filename = ['MC-slope-' num2str(spectralSlope)];
@@ -117,7 +120,7 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
     %     filename = [filename '-BandPass'];
     % end
 
-
     % save(filename);
 
     toc;
+end
