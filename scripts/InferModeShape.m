@@ -21,6 +21,11 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
   modes.lat = data.lat;
   modes.depth = data.depth;
 
+  if strcmpi(data.name, 'tao')
+      load bounds.mat
+      SigSlope = mbound;
+  end
+
   for mm=lonrange
       for nn=latrange
           disp([mm nn])
@@ -89,7 +94,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           [infer_mode, infer_mode_error, corrcoeff, ...
            intercept, stderr] ...
               = DoRegression(dhtfilt, Tfilt(:, range), ...
-                             NoiseAmp, NoiseSlope, opt);
+                             NoiseAmp, NoiseSlope, SigSlope{mm,nn}, opt);
 
           % normalize mode shapes if not monte-carlo
           % first OLS

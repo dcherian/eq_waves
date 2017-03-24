@@ -1,5 +1,5 @@
 function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
-        DoRegression(dhtinput, Tinput, NoiseAmp, NoiseSlope, opt)
+        DoRegression(dhtinput, Tinput, NoiseAmp, NoiseSlope, SigSlope, opt)
 
     if ~exist('opt', 'var') | ~isfield(opt, 'debug')
         opt.debug = 0;
@@ -47,16 +47,20 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
             rrwtls = mf_wtls(dht', T', 0.1, 0.01, 0);
 
             [rrols([3 1]), rrols([4 2]), ~, stderr] = ...
-                dcregress(dht', T', NaN, ...
-                          0, opt.debugRegression, 0);
+                dcregress(dht', T', NaN, 0, opt.debugRegression, 0);
 
-            noise = synthetic_timeseries_known_spectrum( ...
-                [length(dhtinput) opt.numMC], 1, ...
-                NoiseAmp(ii), NoiseSlope(ii));
+            if rrols(1) > SigSlope(ii)
+                noise = synthetic_timeseries_known_spectrum( ...
+                    [length(dhtinput) opt.numMC], 1, ...
+                    NoiseAmp(ii), NoiseSlope(ii));
 
-            m = MonteCarloRegression(dht, T, ...
-                                     rrols(1), rrols(3), ...
-                                     noise, opt);
+                m = MonteCarloRegressionSlopeDistrib( ...
+                    dht, T, rrols(1), rrols(3), noise, opt);
+
+                rrols(1) = nanmean(m);
+            else
+                rrols(1) = NaN;
+            end
         else
             rrwtls = mf_wtls(T', dht', 0.01, 0.5, 0);
 
@@ -64,11 +68,19 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
                 dcregress(T', dht', [], ...
                           0, opt.debugRegression, 0);
 
-            m = MonteCarloRegression(T, dht, ...
-                                     rrols(1), rrols(3), ...
-                                     noise, opt);
+            if rrols(1) > SigSlope(ii)
+                noise = synthetic_timeseries_known_spectrum( ...
+                    [length(dhtinput) opt.numMC], 1, ...
+                    NoiseAmp(ii), NoiseSlope(ii));
+
+                m = MonteCarloRegressionSlopeDistrib( ...
+                    T, dht, rrols(1), rrols(3), noise, opt);
+                rrols(1) = nanmean(m);
+            else
+                rrols(1) = NaN;
+            end
         end
-        rrols(1) = nanmean(m);
+
         infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
         % symmetric 95% confidence interval from distribution of
         % regression slopes from Monte Carlo simulation.
@@ -99,8 +111,9 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
     end
 end
 
-% Monte Carlo error estimation
-function [m] = MonteCarloRegression(x, y0, slope, intercept, noise, opt)
+function [m] = MonteCarloRegressionSlopeDistrib(x, y0, slope, intercept, noise, opt)
+% Monte Carlo estimation of bounds on regression slope
+% presumes that provided slope is significant.
 
     ticstart = tic;
     disp('Monte Carlo error estimation');
@@ -109,15 +122,20 @@ function [m] = MonteCarloRegression(x, y0, slope, intercept, noise, opt)
         noisevec = BandPass(noise(:,mc), opt.filt);
         y =  slope*x' + intercept + noisevec;
         coeff = dcregress(x, y, NaN, 0, 0, 0, 0);
+        c(mc) = coeff(1);
         m(mc) = coeff(2);
     end
     toc(ticstart);
+
+    % figure;
     % hold on; histogram(m); linex(slope);
+
     % keyboard;
+    % figure;
     % PlotSpectrum(slope*x+intercept);
     % PlotSpectrum(noise(:,mc));
     % PlotSpectrum(BandPass(noise(:,mc), opt.filt));
     % PlotSpectrum(y);
-    % PlotSpectrum(y0);
+    % PlotSpectrum(BandPass(y0, opt.filt));
     % legend('slope*x', 'noise', 'noise filt', 'y', 'T');
 end

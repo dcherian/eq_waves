@@ -1,10 +1,7 @@
 %% Monte Carlo regression Slope
 
-%slope = 0.15;
-%intercept = 0.2;
-
 function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
-                                       makePlot, len, xx, spectralAmp)
+                                       makePlot, len, yin, spectralAmp)
 
     numMC = 5e3;
 
@@ -13,19 +10,21 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
     if ~exist('makePlot', 'var'), makePlot = 0; end
     if ~exist('len', 'var'), len = 5e3; end
     if ~exist('spectralAmp', 'var'), spectralAmp = 1; end
-    if ~exist('xx', 'var')
-        xx = synthetic_timeseries_known_spectrum(len, 1, spectralAmp, spectralSlope);
+    if ~exist('yin', 'var')
+        yin = synthetic_timeseries_known_spectrum(len, 1, spectralAmp, spectralSlope);
     end
 
     opt = DefaultOptions;
     if DoBandPass
+        warning(['Running BandPass filter with default options.', ...
+                 'cutoff = [' num2str(opt.filt.cutoff, '%.2f ') ']']);
         if makePlot
             figure;
-            subplot(211); plot(xx);
+            subplot(211); plot(yin);
         end
-        xx = BandPass(xx, opt.filt);
+        yin = BandPass(yin, opt.filt);
         if makePlot
-            subplot(212); plot(xx);
+            subplot(212); plot(yin);
         end
     end
 
@@ -34,25 +33,30 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
 
     c = nan([numMC 1]);
     m = c; r = c; mdist = c; rdist = c;
+    xxmat = synthetic_timeseries_known_spectrum([len numMC], 1, ...
+                                                spectralAmp, spectralSlope);
+
+    c = nan([numMC 1]);
+    m = c; mdist = c; r = c;
+
     for ii=1:numMC
         % xnoise = 0;
-        % yy = slope * (xx + xnoise) + intercept;
-        % ynoise = 0.2*max(abs(yy))*whitenoise(size(yy));
-        % yy = yy + ynoise;
+        % xx = slope * (yin + xnoise) + intercept;
+        % ynoise = 0.2*max(abs(xx))*whitenoise(size(xx));
+        % xx = xx + ynoise;
 
-        yy = synthetic_timeseries_known_spectrum(len, 1, ...
-                                                 spectralAmp, spectralSlope);
-        if size(yy) ~= size(xx), yy = yy'; end
+        xx = xxmat(:,ii);
+        if size(xx) ~= size(yin), xx = xx'; end
 
         if DoBandPass
-            yy = BandPass(yy, opt.filt);
+            xx = BandPass(xx, opt.filt);
         end
 
-        if size(xx) ~= size(yy)
-            yy = yy';
+        if size(yin) ~= size(xx)
+            xx = xx';
         end
 
-        [coeff,~,~,err] = dcregress(xx, yy, [], 0, 0, 0);
+        [coeff,~,~,err] = dcregress(xx, yin, [], 0, 0, 0);
         c(ii) = coeff(1);
         m(ii) = coeff(2);
 
@@ -61,8 +65,8 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
         % Draper & Smith pg. 36 eqn. (1.4.9)
         mdist(ii) = (m(ii)-0)/err(2);
 
-        mask = isnan(xx) | isnan(yy);
-        rmat = corrcoef(xx(~mask), yy(~mask));
+        mask = isnan(yin) | isnan(xx);
+        rmat = corrcoef(yin(~mask), xx(~mask));
         r(ii)= rmat(1,2);
     end
 
@@ -70,18 +74,11 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
     % normally distributed with mean = 0 and σ²=1/(dof-3)
     rdist = 1/2*log((1+r)./(1-r));
 
-    %[coeff, conf, dof] = dcregress(xx, yy, length(yy)-2, 0, 0);
-    % disp(['actual: slope = ' num2str(slope, '%.3f') ' | intercept = ' ...
-    %       num2str(intercept, '%.3f')]);
-    % disp(['dcregress: slope = [' num2str([coeff(2)-conf(2) coeff(2)+conf(2)], '%.3f ') ...
-    %       '] | intercept = [' num2str([coeff(1)-conf(1) coeff(1)+conf(1)], ...
-    %                                   '%.3f ') ']']);
-
     if makePlot
         nbins = 40;
         figure;
         subplot(221)
-        plot(xx,yy, '*');
+        plot(xx,yin, '*');
         title(['Spectral slope = ' num2str(spectralSlope)]);
         beautify;
 
