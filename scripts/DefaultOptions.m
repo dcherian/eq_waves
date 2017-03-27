@@ -23,6 +23,7 @@ function [opt, plotopt] = DefaultOptions()
 
     opt.debug = 0;  % debugging spectrum plots
     opt.debugRegression = 0; % debug dcregress.m
+
     opt.debugNullRegression = 0; % compare slope against
                                  % distribution of noise slopes.
 
