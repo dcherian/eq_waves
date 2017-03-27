@@ -8,7 +8,7 @@ function [] = TheoreticalModes()
   woaTname = [datadir '/woa13_decav_t00_01v2.nc'];
   woaSname = [datadir '/woa13_decav_s00_01v2.nc'];
   woaMname = [datadir '/woa_landsea_01.msk'];
-  etoponame = [datadir '/ETOPO2v2g_f4.nc4'];
+  etoponame = [datadir '/ETOPO2v2g_f4.nc'];
 
   disp(' Loading ETOPO2v2 data.');
   etopo.x = ncread(etoponame, 'x');
