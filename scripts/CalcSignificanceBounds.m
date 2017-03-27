@@ -22,6 +22,10 @@ function [mbound, rbound, m] = CalcSignificanceBounds(x, y, opt, doplot, hax)
     [xAmp, xSlope] = EstimateNoiseSpectrum(x, []);
     % [yAmp, ySlope] = EstimateNoiseSpectrum(y, []);
 
+    % should have more time instants than z-levels.
+    % transpose to make sure y = y(t,z);
+    if size(y,1) < size(y,2), y = y'; end
+
     nz = size(y, 2);
     for zz = 1:nz
         [mdist, m{zz}, r, rdist] = TestMC(xSlope, 1, 0, ...
