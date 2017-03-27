@@ -80,6 +80,10 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax, isMap)
     mode = modes.InferredModeOLS{mm,nn};
     modeError = modes.InferredModeErrorOLS{mm, nn};
 
+    if all(isnan(mode))
+        error('No mode detected at this location!');
+    end
+
     if plotopt.plotW
         dTdz = interp1(flatbot.zTmode, squeeze(flatbot.dTdz(mm,nn,:)), ...
                        modes.depth{mm,nn});

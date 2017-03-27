@@ -39,7 +39,7 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
     c = nan([numMC 1]);
     m = c; mdist = c; r = c;
 
-    for ii=1:numMC
+    parfor ii=1:numMC
         % xnoise = 0;
         % xx = slope * (yin + xnoise) + intercept;
         % ynoise = 0.2*max(abs(xx))*whitenoise(size(xx));
