@@ -1,0 +1,86 @@
+#+OPTIONS: :links nil
+* Introduction
+
+This repository contains code for what should become Cherian, Farrar & Durland (201x) - The upper-ocean vertical structure of 7-day period inertial-gravity waves in the equatorial Pacific.
+
+* Instructions
+
+To reproduce all of the figures you will first need to
+- Download the TAO/TRITON data from http://www.pmel.noaa.gov/tao/drupal/disdel/. The code expects one netcdf file per site stored in ~data/dynht/~ and ~data/temp/~.
+- Download the World Ocean Atlas data from https://www.nodc.noaa.gov/OC5/woa13/. You'll need ~woa_landsea_01.msk~, ~woa13_decav_t00_01v2.nc~ and ~woa13_decav_s00_01v2.nc~ saved to the ~data/~ folder.
+- Download ETOPO 2v2g data from https://ngdc.noaa.gov/mgg/global/relief/ETOPO2/ETOPO2v2-2006/ETOPO2v2g/netCDF/. You'll need ~ETOPO2v2g_f4.nc~ saved to the ~data/~ folder.
+- Run ~master.m~
+- Run ~figs_paper.m~
+
+Then ~images/~ will contain all figures used in the paper.
+
+* Contents
+The code expects the following layout.
+#+BEGIN_src text
+  -- eq_waves
+  ----- data/
+  ---------- dynht/dyn*.cdf
+  ---------- temp/t*.cdf
+  ---------- ETOPO2v2g_f4.nc
+  ---------- woa13_decav_t00_01v2.nc
+  ---------- woa13_decav_s00_01v2.nc
+  ---------- woa_landsea_01.msk
+  ----- images/
+  ----- scripts/*.m
+  ----- README.org (this file)
+#+END_src
+
+*** Overall Scripts
+
+|--------------------+----------------------------------------------------------|
+| Script             | Description                                              |
+|--------------------+----------------------------------------------------------|
+| ~master.m~           | Recreate everything from scratch.                        |
+| ~figs_paper.m~       | Make figures used in paper.                              |
+| ~TestInference.m~    | Runs tests with fake data.                               |
+| ~InferOneLocation.m~ | Recreates everything but for just one specified location |
+| ~DefaultOptions.m~   | Conveniently creates default options structure           |
+|                    | with values used in paper                                |
+| ~PlotMode.m~         | Plots mode structure at one location.                    |
+| ~PlotModeMap.m~      | Plots mode structure at all locations as big map.        |
+|                    | Calls ~PlotMode~ to do actual plotting.                    |
+| ~ReadTaoTriton.m~    | Reads in data. Can do so at just one location if needed. |
+| ~TheoreticalModes.m~ | Calls ~vertmode~ with WOA data, calculates mode structures |
+|                    | and saves them in ~flat-bottom-modes.mat~                  |
+|--------------------+----------------------------------------------------------|
+
+*** Analysis Scripts
+
+|--------------------------+-----------------------------------------------------------------------|
+| Script                   | Description                                                           |
+|--------------------------+-----------------------------------------------------------------------|
+| ~InferModeShape.m~         | Does most of the heavy lifting                                        |
+| ~DoRegression.m~           | Calls ~dcregress~ for regression between provided variables.            |
+|                          | Also estimates error bounds.                                          |
+| ~EstimateNoiseSpectrum.m~  | Fits a power law to spectrum of provide input.                        |
+|                          | Returns amplitude α and spectral slope β such that spectrum, S = αe^{β} |
+| ~CalcSignificanceBounds.m~ | Calculates minimum regression slope that would indicate that          |
+|                          | a regression is not returning a null result.  Calls ~TestMC~ to         |
+|                          | do iterations between data and red noise time series.                 |
+| ~SaveNullBoundsForTao.m~   | Runs ~CalcSignificanceBounds~ at every available instrument depth       |
+|                          | and saves results to ~bounds.mat~ so they can be used by ~InferModeShape |
+| ~figs.m~                   | Code for various figures made during analysis.                        |
+|                          |                                                                       |
+|--------------------------+-----------------------------------------------------------------------|
+
+*** Utility Scripts
+|---------------------------------------+----------------------------------------------------------------|
+| Script                                | Description                                                    |
+|---------------------------------------+----------------------------------------------------------------|
+| ~TestMC.m~                              | Runs monte carlo iterations between provided input and         |
+|                                       | noise timeseries with provided properties.                     |
+|                                       | Called by ~CalcSignificanceBounds~ to do the hard work.       |
+| ~dcregress.m~                           | Does the actual regression                                     |
+| ~BandPass.m~                            | BandPass filters                                               |
+| ~FilterSeries.m~                        | Does the actual filtering                                      |
+| ~synthetic_timeseries_known_spectrum.m~ | Creates fake time series with specified spectral properties.   |
+|                                       | (code from Tom Farrar)                                          |
+| ~GappySpectrum.m~                       | Calculates spectrum of a gappy timeseries.                     |
+| ~findCommmonTimeRange.m~                | Finds common time range for dyn ht and temperature time Series |
+| ~getTitleString.m~                      | Creates a formatted title string for plots.                    |
+|---------------------------------------+----------------------------------------------------------------|
