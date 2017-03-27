@@ -22,8 +22,11 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
   modes.depth = data.depth;
 
   if strcmpi(data.name, 'tao')
-      load bounds.mat
-      SigSlope = mbound;
+      if exist('bounds.mat', 'file')
+          load bounds.mat
+      else
+          mbound = [];
+      end
   end
 
   for mm=lonrange
@@ -40,7 +43,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           dhtfilt = BandPass(dht, opt.filt);
 
           if ~opt.TagainstDHT
-              [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(dht, opt);
+              [noise.amp, noise.slope] = EstimateNoiseSpectrum(dht, opt);
           end
 
           if opt.debug
@@ -66,7 +69,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
               end
 
               if opt.TagainstDHT
-                  [NoiseAmp(ii), NoiseSlope(ii)] = ...
+                  [noise.amp(ii), noise.slope(ii)] = ...
                       EstimateNoiseSpectrum(data.T{mm,nn}(ii,:), opt);
               end
 
@@ -90,11 +93,13 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           corrcoeff = infer_mode;
           Tstd = infer_mode;
 
+          sigslope.m = mbound{mm,nn};
+
           Tstd = nanstd(Tfilt(:,range)')';
           [infer_mode, infer_mode_error, corrcoeff, ...
            intercept, stderr] ...
               = DoRegression(dhtfilt, Tfilt(:, range), ...
-                             NoiseAmp, NoiseSlope, SigSlope{mm,nn}, opt);
+                             noise, sigslope, opt);
 
           % normalize mode shapes if not monte-carlo
           % first OLS

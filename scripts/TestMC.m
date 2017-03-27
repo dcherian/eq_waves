@@ -33,6 +33,9 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
 
     c = nan([numMC 1]);
     m = c; r = c; mdist = c; rdist = c;
+
+    if all(isnan(yin)), return; end
+
     xxmat = synthetic_timeseries_known_spectrum([len numMC], 1, ...
                                                 spectralAmp, spectralSlope);
 

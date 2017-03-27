@@ -1,14 +1,21 @@
-function [] = SaveNullBoundsForTao(tao, opt)
+function [] = SaveNullBoundsForTao(tao, opt, lmm, lnn)
+
+    if ~exist('lmm', 'var') | isempty(lmm), lmm = 1:11; end
+    if ~exist('lnn', 'var') | isempty(lnn), lnn = 1:7; end
+
+    if exist('bounds.mat', 'file')
+        load bounds.mat
+    else
+        mbound = cell(size(tao.dht, 1), size(tao.dht, 2));
+        rbound = cell(size(tao.dht, 1), size(tao.dht, 2));
+    end
 
     hash = githash([mfilename('fullpath') '.m']);
 
-    mbound = cell(size(tao.dht, 1), size(tao.dht, 2));
-    rbound = cell(size(tao.dht, 1), size(tao.dht, 2));
-
     tic;
     disp('Monte carlo estimation of null bounds on regression slope');
-    for mm=1:11
-        for nn=1:7
+    for mm=lmm
+        for nn=lnn
             if isempty(tao.dht{mm,nn})
                 mbound{mm,nn} = NaN;
                 rbound{mm,nn} = NaN;
@@ -27,7 +34,8 @@ function [] = SaveNullBoundsForTao(tao, opt)
                                             tao.timetemp{mm,nn});
                 [mbound{mm,nn}(zz), rbound{mm,nn}(zz)] = ...
                     CalcSignificanceBounds(tao.dht{mm,nn}, ...
-                                           tao.T{mm,nn}(zz,range));
+                                           tao.T{mm,nn}(zz,range), ...
+                                           opt);
             end
 
             save('./bounds.mat', 'mbound', 'rbound', 'hash');
