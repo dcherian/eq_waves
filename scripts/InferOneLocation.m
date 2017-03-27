@@ -9,6 +9,7 @@ function [] = InferOneLocation(mm, nn, opt, plotopt)
    tao = ReadTaoTriton(mm,nn);
    modes = InferModeShape(opt, tao, mm, nn);
 
+   plotopt.plotBounds = 1;
    zz = 5;
    figure;
    hax(1) = subplot(121);

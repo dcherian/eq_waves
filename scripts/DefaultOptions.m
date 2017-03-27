@@ -38,6 +38,7 @@ function [opt, plotopt] = DefaultOptions()
     plotopt.plotWTLS = 0;
     plotopt.MarkWaterDepth = 1;
     plotopt.plotPhaseLag = 0;
+    plotopt.plotBounds = 0;
     plotopt.plotW = 0; % Plot vertical velocity instead of temperature
 
     plotopt.window = opt.filt.window;

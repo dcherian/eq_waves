@@ -94,6 +94,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           Tstd = infer_mode;
 
           sigslope.m = mbound{mm,nn};
+          sigslope.mdist = mdist{mm,nn};
 
           Tstd = nanstd(Tfilt(:,range)')';
           [infer_mode, infer_mode_error, corrcoeff, ...
@@ -105,6 +106,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           % first OLS
           imnorm = findNormalization(infer_mode(:,1));
           modes.InferredModeOLS{mm,nn} = infer_mode(:,1)./imnorm;
+          modes.OLSnorm(mm,nn) = imnorm;
           modes.InferredModeErrorOLS{mm,nn} = ...
               infer_mode_error(:,1)./imnorm;
           modes.StdErrorOLS{mm,nn} = stderr./imnorm;

@@ -45,4 +45,7 @@ function [mbound, rbound, m] = CalcSignificanceBounds(x, y, opt, doplot, hax)
         mbound(zz) = mean(abs(calc95(m{zz})));
         rbound(zz) = mean(abs(calc95(r)));
     end
+
+    % squeeze faaltu dimension.
+    if nz == 1, m = m{1}; end
 end

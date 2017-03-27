@@ -63,6 +63,9 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax, isMap)
         if ~isfield(plotopt, 'plotW')
             plotopt.plotW = 0;
         end
+        if ~isfield(plotopt, 'plotBounds')
+            plotopt.plotBounds = 0;
+        end
     end
 
     if ~exist('hax', 'var')
@@ -96,9 +99,9 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax, isMap)
         varname = 'T';
     end
 
-    plot(hax, squeeze(flatbot.dTdz(mm,nn,:))./ ...
-         max(squeeze(flatbot.dTdz(mm,nn,:))), -flatbot.zTmode, ...
-         '-', 'Color', green);
+    % plot(hax, squeeze(flatbot.dTdz(mm,nn,:))./ ...
+    %      max(squeeze(flatbot.dTdz(mm,nn,:))), -flatbot.zTmode, ...
+    %      '-', 'Color', green);
     % inferred mode from TAO data
     if plotopt.plotOLS
         handles.hols = plot(hax, mode, modes.depth{mm,nn} * -1, ...
@@ -147,6 +150,13 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax, isMap)
             plot(hax, modes.Tstd{mm,nn}./nanmax(modes.Tstd{mm,nn}), ...
                  modes.depth{mm,nn} * -1,'k.', 'LineWidth', linewidth, ...
                  'DisplayName', 'T_{std}');
+    end
+
+    if plotopt.plotBounds
+        load bounds
+        hbounds = PlotErrorPatch(hax, modes.depth{mm,nn} * -1, ...
+                                 zeros(size(mbound{mm,nn}))', ...
+                                 mbound{mm,nn}'/modes.OLSnorm(mm,nn), [1 1 1]*0);
     end
 
     % correlation coefficient

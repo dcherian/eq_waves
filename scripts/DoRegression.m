@@ -124,6 +124,8 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
             if ~isnan(rrols(1));
                 linex(rrols(1));
                 calc95(m);
+                hold on;
+                histogram(m);
             end
             title(num2str(ii));
         end

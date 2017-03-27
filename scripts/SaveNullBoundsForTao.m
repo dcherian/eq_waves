@@ -8,6 +8,7 @@ function [] = SaveNullBoundsForTao(tao, opt, lmm, lnn)
     else
         mbound = cell(size(tao.dht, 1), size(tao.dht, 2));
         rbound = cell(size(tao.dht, 1), size(tao.dht, 2));
+        mdist = cell(size(tao.dht, 1), size(tao.dht, 2));
     end
 
     hash = githash([mfilename('fullpath') '.m']);
@@ -32,13 +33,13 @@ function [] = SaveNullBoundsForTao(tao, opt, lmm, lnn)
 
                 range = findCommonTimeRange(tao.timedht{mm,nn}, ...
                                             tao.timetemp{mm,nn});
-                [mbound{mm,nn}(zz), rbound{mm,nn}(zz)] = ...
+                [mbound{mm,nn}(zz), rbound{mm,nn}(zz), mdist{mm,nn}{zz}] = ...
                     CalcSignificanceBounds(tao.dht{mm,nn}, ...
                                            tao.T{mm,nn}(zz,range), ...
                                            opt);
             end
 
-            save('./bounds.mat', 'mbound', 'rbound', 'hash');
+            save('./bounds.mat', 'mbound', 'rbound', 'mdist', 'hash');
         end
     end
     toc;
