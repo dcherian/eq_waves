@@ -4,7 +4,7 @@ plotopt.ploterr = 1;
 plotopt.nmode = [1 2];
 
 tao = ReadTaoTriton;
-% SaveSlopeBounds(tao, opt);
+% SaveNullBoundsForTao(tao, opt);
 opt.numMC = 1500;
 InferModeShape(opt, tao);
 RunTests(opt);

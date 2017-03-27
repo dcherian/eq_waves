@@ -15,10 +15,10 @@ function [] = InferOneLocation(mm, nn, opt, plotopt)
    PlotMode(modes, mm, nn, plotopt, hax(1));
 
    hax(2) = subplot(122);
-   keyboard;
-   % PlotSpectrum(EstimateNoiseSpectrum(tao.T{mm,nn}(zz,:), opt, 1, hax(2)))
+   EstimateNoiseSpectrum(tao.T{mm,nn}(zz,:), opt, 1, hax(2));
    PlotSpectrum(tao.dht{mm,nn});
-   PlotSpectrum(BandPass(tao.dht{mm,nn}, opt.filt));
-   % PlotSpectrum(tao.T{mm,nn}(zz,:))
+   % PlotSpectrum(BandPass(tao.dht{mm,nn}, opt.filt));
+   % PlotSpectrum(tao.T{mm,nn}(zz,:));
    % PlotSpectrum(BandPass(tao.T{mm,nn}(zz,:), opt.filt));
+   legend('Noise (temp)', 'Dyn ht', 'Temp' )
 end
