@@ -29,7 +29,7 @@ function [mbound, rbound, m] = CalcSignificanceBounds(x, y, opt, doplot, hax)
     nz = size(y, 2);
     for zz = 1:nz
         [mdist, m{zz}, r, rdist] = TestMC(xSlope, 1, 0, ...
-                                          length(y(:,zz)), y(:,zz), xAmp);
+                                          length(y(:,zz)), x, y(:,zz), xAmp);
 
         if doplot
             if isempty(hax)

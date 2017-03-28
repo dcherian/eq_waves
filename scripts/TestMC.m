@@ -1,7 +1,7 @@
 %% Monte Carlo regression Slope
 
 function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
-                                       makePlot, len, yin, spectralAmp)
+                                       makePlot, len, xin, yin, spectralAmp)
 
     numMC = 5e3;
 
@@ -39,6 +39,11 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
     xxmat = synthetic_timeseries_known_spectrum([len numMC], 1, ...
                                                 spectralAmp, spectralSlope);
 
+    % add gaps to generated timeseries
+    if exist('xin', 'var')
+        xxmat(isnan(xin), :) = NaN;
+    end
+
     c = nan([numMC 1]);
     m = c; mdist = c; r = c;
 
@@ -59,6 +64,9 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
             xx = xx';
         end
 
+        mask = isnan(yin) | isnan(xx);
+        if length(xx(~mask)) <= 2, continue; end
+
         [coeff,~,~,err] = dcregress(xx, yin, [], 0, 0, 0);
         c(ii) = coeff(1);
         m(ii) = coeff(2);
@@ -68,7 +76,6 @@ function [mdist, m, r, rdist] = TestMC(spectralSlope, DoBandPass, ...
         % Draper & Smith pg. 36 eqn. (1.4.9)
         mdist(ii) = (m(ii)-0)/err(2);
 
-        mask = isnan(yin) | isnan(xx);
         rmat = corrcoef(yin(~mask), xx(~mask));
         r(ii)= rmat(1,2);
     end
