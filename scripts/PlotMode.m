@@ -202,9 +202,10 @@ end
 
 function [handle] = PlotErrorPatch(hax, depth, mode, error, color)
 
-    depth = -abs(depth(~isnan(mode)));
-    mode = cut_nan(mode);
-    error = cut_nan(error);
+    mask = ~(isnan(mode) | isnan(error));
+    depth = -abs(depth(mask));
+    mode = mode(mask);
+    error = error(mask);
 
     if ~isequal(size(depth), size(mode))
         depth = depth';
