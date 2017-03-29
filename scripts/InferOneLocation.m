@@ -1,5 +1,5 @@
-function [] = InferOneLocation(mm, nn, opt, plotopt)
-   if ~exist('opt', 'var') | isempty(opt)
+function [modes] = InferOneLocation(mm, nn, opt, plotopt)
+    if ~exist('opt', 'var') | isempty(opt)
        [opt, ~] = DefaultOptions;
    end
    if ~exist('plotopt', 'var') | isempty(plotopt)
@@ -10,7 +10,7 @@ function [] = InferOneLocation(mm, nn, opt, plotopt)
    modes = InferModeShape(opt, tao, mm, nn);
 
    plotopt.plotBounds = 1;
-   zz = 5;
+   zz = 6;
    figure;
    hax(1) = subplot(121);
    PlotMode(modes, mm, nn, plotopt, hax(1));
@@ -21,5 +21,5 @@ function [] = InferOneLocation(mm, nn, opt, plotopt)
    % PlotSpectrum(BandPass(tao.dht{mm,nn}, opt.filt));
    % PlotSpectrum(tao.T{mm,nn}(zz,:));
    % PlotSpectrum(BandPass(tao.T{mm,nn}(zz,:), opt.filt));
-   legend('Noise (temp)', 'Dyn ht', 'Temp' )
+   % legend('Noise (temp)', 'Dyn ht', 'Temp' )
 end
