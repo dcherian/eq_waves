@@ -10,7 +10,7 @@ function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
     if ~exist('plotflag', 'var'), plotflag = 0; end
     if ~exist('opt', 'var'), opt = []; end
 
-    SubsetLength = []; 256;
+    SubsetLength = 256;
     [S, freq] = GappySpectrum(in, SubsetLength);
 
     % if opt is not provided, use full spectrum for fit

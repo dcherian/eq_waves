@@ -1,3 +1,4 @@
+%  [modes] = InferOneLocation(mm, nn, opt, plotopt)
 function [modes] = InferOneLocation(mm, nn, opt, plotopt)
     if ~exist('opt', 'var') | isempty(opt)
        [opt, ~] = DefaultOptions;
