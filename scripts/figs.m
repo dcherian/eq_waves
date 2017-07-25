@@ -1,15 +1,37 @@
-%% test InterpGapLength
-mm = 9; nn = 4;
-[opt, plotopt] = DefaultOptions;
-modes = InferModeShape(opt, tao, mm, nn);
-plotopt.plotWTLS = 0;
-PlotMode(modes, mm, nn, plotopt);
+%%
+mm = 7; nn = 4;
+opt = DefaultOptions;
+opt.TagainstDHT = 1;
+opt.numMC = 2000;
 
+InferOneLocation(mm,nn,opt);
+
+%% Test monte carlo with peaks
+
+
+%% linear regression monte carlo
+
+xx = randn([5000 1]);
+yy = 0*xx + 4*randn([5000 1]);
+coeff = dcregress(xx, yy);
+m0 = coeff(2)
+noise_estimate = yy - m0*xx;
+[NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(noise_estimate, [], 0)
+
+for ii =1:5000
+    noisevec = synthetic_timeseries_known_spectrum(length(xx), 1, ...
+                                                   NoiseAmp, NoiseSlope);
+    yy1 = m0*xx + noisevec;
+    coeff = dcregress(xx, yy1, 0, 0, 0);
+    c(ii) = coeff(1);
+    m(ii) = coeff(2);
+end
+histogram(m); linex(m0);
+
+%% test interpgaplength
 opt.InterpGapLength = 0;
 modes = InferModeShape(opt, tao, mm, nn);
 PlotMode(modes, mm, nn, plotopt);
-
-linkfig;
 
 %% typical mode shapes
 
@@ -403,14 +425,14 @@ clf
 hr = histogram(rred, 20, 'EdgeColor', 'none', 'FaceAlpha', 0.5);
 hold on;
 hw = histogram(rwhite, 20, ...
-'FaceColor', 'w');
+               'FaceColor', 'w');
 
 hthsig = linex([-1 1]*corr_sig(numel-2, 0.95));
 hwsig = linex([-1 1]*sigwhite, [], 'k');
 hrsig = linex([-1 1]*sigred, [], 'r');
 
 legend([hw hr hwsig{1} hrsig{1} hthsig{1}], ...
-'White', 'Red', 'White 95', 'Red 95', 'Theory 95');
+       'White', 'Red', 'White 95', 'Red 95', 'Theory 95');
 
 set(gca, 'XTickMode', 'auto');
 ylabel('Counts');
@@ -506,8 +528,8 @@ rdof = 1./fitWhiter.sigma^2+3
 fitWhitet = fitdist(mWhite, 'tlocationscale')
 fitWhiteg = fitdist(mWhite, 'normal')
 % this should give standard t-values for large degrees of freedom
-%calc95(mWhite)
-%tinv(0.025, len)
+% calc95(mWhite)
+% tinv(0.025, len)
 
 % band passed white noise
 disp('Filtered white noise')
@@ -651,18 +673,39 @@ resizeImageForPub('portrait')
 
 export_fig -r150 -transparent images/tao-monte-carlo-null-hyp-distributions.png
 
-%% regression residuals white noise
-xx = linspace(-1,1,5e1);
-yy = 5*xx;
-noise = synthetic_timeseries_known_spectrum(5e1,1,1,0)';
-yy = 5*xx + 0.3*max(abs(yy))*noise./max(noise);
+%% test monte carlo error bounds idea with fake time series
+% created images/bad-regression.png
 
-% xx = randn(5e2,1);
-% yy = 5*xx;
-% yy = yy + 0.1*max(abs(yy))*randn(5e2,1);
+xx = linspace(-1,1,5000);
+noise = randn(size(xx));
 
-dcregress(xx, yy, [], 0, 1, 0);
+% assume I observe yy0
+yy0 = xx + 3*noise;
+% do my regression
+[coeff, conf, dof, err] = dcregress(xx, yy0, [], 0, 0, 0);
+% and get this slope
+m1 = coeff(2);
+% and intercept
+c1 = coeff(1);
+[NoiseAmp, NoiseSlope]  = EstimateNoiseSpectrum(yy0-m1*xx-c1, [], 0);
 
+m = nan([5000 1]);
+tic;
+for mc=1:5000
+    % generate noise with same properties
+    gennoise = synthetic_timeseries_known_spectrum(length(xx), 1, ...
+                                                   NoiseAmp, NoiseSlope)';
+    yy = m1*xx + c1 + gennoise;
+    [coeff, conf, dof, err] = dcregress(xx, yy, [], 0, 0, 0);
+    m(mc) = coeff(2);
+    mconf(mc) = conf(2);
+end
+
+hold on; histogram(m);
+linex(calc95(m));
+linex(m1);
+linex(1, [], 'r');
+linex(mean(m) + [-1 1]*mean(mconf));
 
 %% corr dht, T
 [c, lags] = GappyCorrelation(T);
