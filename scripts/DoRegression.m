@@ -1,5 +1,7 @@
-function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
-        DoRegression(dhtinput, Tinput, noise, sigslope, opt)
+%  [infer_mode, infer_mode_error, corrcoeff, intercept, stdError, dof] = ...
+% DoRegression(dhtinput, Tinput, noise, sigslope, opt, dhtfull)
+function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError, dof] = ...
+        DoRegression(dhtinput, Tinput, noise, sigslope, opt, dhtfull)
 
     if ~exist('opt', 'var') | ~isfield(opt, 'debug')
         opt.debug = 0;
@@ -85,6 +87,8 @@ function [infer_mode, infer_mode_error, corrcoeff, intercept, stdError] = ...
             end
         end
 
+        % simple dof estimate
+        dof(ii) = sum(~isnan(T))/max(opt.filt.cutoff/2);
         infer_mode(ii,1:2) = [rrols(1) rrwtls(1)];
         % symmetric 95% confidence interval from distribution of
         % regression slopes from Monte Carlo simulation.

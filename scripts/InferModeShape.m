@@ -98,9 +98,9 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
 
           Tstd = nanstd(Tfilt(:,range)')';
           [infer_mode, infer_mode_error, corrcoeff, ...
-           intercept, stderr] ...
+           intercept, stderr, dof] ...
               = DoRegression(dhtfilt, Tfilt(:, range), ...
-                             noise, sigslope, opt);
+                             noise, sigslope, opt, dht);
 
           % normalize mode shapes if not monte-carlo
           % first OLS
@@ -110,6 +110,7 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           modes.InferredModeErrorOLS{mm,nn} = ...
               infer_mode_error(:,1)./imnorm;
           modes.StdErrorOLS{mm,nn} = stderr./imnorm;
+          modes.dof{mm,nn} = dof;
 
           % now WTLS
           imnorm = findNormalization(infer_mode(:,2));
