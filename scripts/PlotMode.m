@@ -7,6 +7,7 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax, isMap)
 
     linewidth = 1;
     capwidth = 12;
+    markersize = 14;
     linestylemode = {'--'; '-'; '-.'}; % line style for theoretical modes.
 
     red = [217,95,2]/255; %[227,74,51]/255;
@@ -105,7 +106,7 @@ function [handles] = PlotMode(modename, mm, nn, plotopt, hax, isMap)
     % inferred mode from TAO data
     if plotopt.plotOLS
         handles.hols = plot(hax, mode, modes.depth{mm,nn} * -1, ...
-                            '.', 'Color', red, 'MarkerSize', 16, ...
+                            '.', 'Color', red, 'MarkerSize', markersize, ...
                             'DisplayName', 'T_{TAO/TRITON} OLS');
         if plotopt.ploterr
             handles.herrols = PlotErrorPatch(hax, ...
