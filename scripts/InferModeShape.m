@@ -43,7 +43,9 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
           dhtfilt = BandPass(dht, opt.filt);
 
           if ~opt.TagainstDHT
-              [noise.amp, noise.slope] = EstimateNoiseSpectrum(dht, opt);
+              % use longest valid subset
+              [noise.amp, noise.slope] = ...
+                  EstimateNoiseSpectrum(dht, opt, 0, [], []);
           end
 
           if opt.debug
@@ -70,7 +72,8 @@ function [modes] = InferModeShape(opt, data, lonrange, latrange)
 
               if opt.TagainstDHT
                   [noise.amp(ii), noise.slope(ii)] = ...
-                      EstimateNoiseSpectrum(data.T{mm,nn}(ii,:), opt);
+                      EstimateNoiseSpectrum(data.T{mm,nn}(ii,:), ...
+                                            opt, 0, [], []);
               end
 
               if opt.debug

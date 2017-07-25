@@ -1,5 +1,5 @@
-function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
-                                                      plotflag, hax)
+function [NoiseAmp, NoiseSlope] = ...
+        EstimateNoiseSpectrum(in, opt, plotflag, hax, SubsetLength)
     % Estimate noise spectrum as S = (NoiseAmp) * (freq)^(NoiseSlope)
     % Do this by fitting a line in
     %    (freq < low-frequency cutoff).
@@ -9,8 +9,8 @@ function [NoiseAmp, NoiseSlope] = EstimateNoiseSpectrum(in, opt, ...
     useHiFreq = 0;
     if ~exist('plotflag', 'var'), plotflag = 0; end
     if ~exist('opt', 'var'), opt = []; end
+    if ~exist('SubsetLength', 'var'), SubsetLength = 256; end
 
-    SubsetLength = 256;
     [S, freq] = GappySpectrum(in, SubsetLength);
 
     % if opt is not provided, use full spectrum for fit
